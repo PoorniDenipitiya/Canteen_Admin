@@ -1,0 +1,29 @@
+.menu-details {
+    padding: 20px;
+  }
+  
+  .food-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+  }
+  
+  .food-table th,
+  .food-table td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: left;
+  }
+  
+  .food-table th {
+    background-color: #f4f4f4;
+    font-weight: bold;
+  }
+  
+  .food-table td {
+    vertical-align: middle;
+  }
+  
+  .food-table .MuiIconButton-root {
+    padding: 5px;
+  }
