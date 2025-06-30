@@ -48,6 +48,7 @@ const cors = require('cors');
 const authRoutes = require('./Routes/authRoutes');
 const categoryRoutes = require("./Routes/categoryRoutes");
 const foodRoutes = require("./Routes/foodRoutes");
+const orderRoutes = require('./Routes/orderRoutes');
 require('dotenv').config();
 const Category = require('./Models/CategoryModel');
 const Food = require('./Models/FoodModel');
@@ -66,6 +67,7 @@ app.use('/api', authRoutes);
 app.use(bodyParser.json());
 app.use("/api/category", categoryRoutes);
 app.use("/api/food", foodRoutes);
+app.use("/api/admin/orders", orderRoutes);
 
 // Your existing routes and middleware
 app.get('/api/categories', async (req, res) => {
@@ -87,6 +89,14 @@ app.get('/api/foods', async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 });
+
+app.use(
+  cors({
+    origin: ["http://localhost:3001"], // 👈 allow your Admin Panel frontend
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    credentials: true,
+  })
+);
 
 const PORT = process.env.PORT || 5000;
 

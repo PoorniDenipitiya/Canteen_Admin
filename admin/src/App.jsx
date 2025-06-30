@@ -6,6 +6,7 @@ import ThemeCustomization from 'themes';
 
 import ScrollTop from 'components/ScrollTop';
 
+
 // ==============================|| APP - THEME, ROUTER, LOCAL ||============================== //
 
 export default function App() {
