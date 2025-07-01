@@ -8,6 +8,8 @@ const OrderManagement = () => {
   const navigate = useNavigate();
   const [categoriesWithFoodCount, setCategoriesWithFoodCount] = useState([]);
   const [canteenName, setCanteenName] = useState('');
+  const statusOptions = ["order placed", "accepted", "processing", "order ready", "collected"];
+  const [orderStatusCounts, setOrderStatusCounts] = useState({});
 
   // Fetch canteen name from localStorage
   useEffect(() => {
@@ -59,6 +61,40 @@ const OrderManagement = () => {
     }
   }, [canteenName]);
 
+  // Fetch orders and count by status for today
+  useEffect(() => {
+    const fetchOrderStatusCounts = async () => {
+      try {
+        if (!canteenName) return;
+        const response = await axios.get(`http://localhost:3002/api/admin/orders?canteenName=${canteenName}`);
+        const orders = Array.isArray(response.data) ? response.data : [];
+        // Filter orders for today
+        const today = new Date();
+        const todayStr = today.toISOString().slice(0, 10);
+        const todayOrders = orders.filter(order => {
+          const orderDate = new Date(order.orderedDate);
+          return orderDate.toISOString().slice(0, 10) === todayStr;
+        });
+        // Count orders by status
+        const counts = {};
+        statusOptions.forEach(status => { counts[status] = 0; });
+        todayOrders.forEach(order => {
+          if (counts.hasOwnProperty(order.status)) {
+            counts[order.status]++;
+          }
+        });
+        setOrderStatusCounts(counts);
+      } catch (error) {
+        console.error('Error fetching orders:', error);
+        // Set all to 0 if error
+        const counts = {};
+        statusOptions.forEach(status => { counts[status] = 0; });
+        setOrderStatusCounts(counts);
+      }
+    };
+    fetchOrderStatusCounts();
+  }, [canteenName]);
+
   return (
     <div className="order-management">
       {/* Menu Box */}
@@ -93,6 +129,20 @@ const OrderManagement = () => {
       {/* Orders Box */}
       <div className="box">
         <h2>Orders</h2>
+        <div className="category-list">
+          <div className="modern-table">
+            <div className="table-header">
+              <span>Order Status</span>
+              <span># Items</span>
+            </div>
+            {statusOptions.map(status => (
+              <div key={status} className="table-row">
+                <span>{status.charAt(0).toUpperCase() + status.slice(1)}</span>
+                <span>{orderStatusCounts[status] || 0}</span>
+              </div>
+            ))}
+          </div>
+        </div>
         <button
           className="more-button"
           onClick={() => navigate('/order')}
