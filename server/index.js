@@ -58,7 +58,8 @@ const app = express();
 app.use(express.json());
 app.use(cookieParser());
 app.use(cors({
-  origin: ['http://localhost:3001', 'http://localhost:3000'],
+  origin: ['http://localhost:3000', 'http://localhost:3001'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
   credentials: true
 }));
 
@@ -89,14 +90,6 @@ app.get('/api/foods', async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 });
-
-app.use(
-  cors({
-    origin: ["http://localhost:3001"], // 👈 allow your Admin Panel frontend
-    methods: ["GET", "POST", "PUT", "DELETE"],
-    credentials: true,
-  })
-);
 
 const PORT = process.env.PORT || 5000;
 

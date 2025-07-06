@@ -16,9 +16,7 @@ const SamplePage = Loadable(lazy(() => import('pages/extra-pages/sample-page')))
 import OrderManagement from 'pages/orderMgt/index';
 import Menu from 'pages/orderMgt/menu'; 
 import Order from 'pages/orderMgt/order';
-/*const OrderManagement = Loadable(lazy(() => import('pages/orderMgt/index')));
-const Menu = Loadable(lazy(() => import('pages/orderMgt/menu')));
-const Order = Loadable(lazy(() => import('pages/orderMgt/order')));*/
+import ComplaintManagement from 'pages/complaintMgt/ComplaintManagement';
 
 // ==============================|| MAIN ROUTING ||============================== //
 
@@ -70,6 +68,10 @@ const MainRoutes = {
     {
       path: 'order', // Define the order route as a standalone route
       element: <Order />
+    },
+    {
+      path: 'complaint-management',
+      element: <ComplaintManagement />
     }
   ]
 };
