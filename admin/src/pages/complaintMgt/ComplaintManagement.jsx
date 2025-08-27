@@ -3,18 +3,93 @@ import axios from 'axios';
 import './ComplaintManagement.css';
 
 const ComplaintManagement = () => {
+  // Handler for action change
+  const handleActionChange = async (complaintId, newAction) => {
+    try {
+      setLoading(true);
+      await axios.put(
+        `http://localhost:5000/api/complaints/${complaintId}/action`,
+        { action: newAction },
+        { withCredentials: true }
+      );
+      // Refresh complaints list
+      const response = await axios.get('http://localhost:3002/api/complaints/all', { withCredentials: true });
+      setComplaints(Array.isArray(response.data) ? response.data : []);
+      // If modal is open, update selectedComplaint action locally
+      if (selectedComplaint && selectedComplaint._id === complaintId) {
+        setSelectedComplaint({ ...selectedComplaint, action: newAction });
+      }
+    } catch (err) {
+      setError('Error updating action');
+    } finally {
+      setLoading(false);
+    }
+  };
+  // Track complaints that have ever appeared in MO section, persist in localStorage
+  const [moComplaintIds, setMoComplaintIds] = useState(() => {
+    const stored = localStorage.getItem('moComplaintIds');
+    return stored ? JSON.parse(stored) : [];
+  });
   const role = localStorage.getItem('userRole');
   const [complaints, setComplaints] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [selectedComplaint, setSelectedComplaint] = useState(null);
   const [showModal, setShowModal] = useState(false);
+  const statusOptions = [
+    'Pending',
+    'On Investigation',
+    'On MO Investigation',
+    'MO Investigation Completed',
+    'Investigation Completed',
+    'Complaint Closed'
+  ];
+
+  const handleStatusChange = async (complaintId, newStatus) => {
+    try {
+      setLoading(true);
+      await axios.put(
+        `http://localhost:5000/api/complaints/${complaintId}/status`,
+        { status: newStatus },
+        { withCredentials: true }
+      );
+      // Refresh complaints list
+      const response = await axios.get('http://localhost:3002/api/complaints/all', { withCredentials: true });
+      setComplaints(Array.isArray(response.data) ? response.data : []);
+      // If modal is open, update selectedComplaint status locally
+      if (selectedComplaint && selectedComplaint._id === complaintId) {
+        setSelectedComplaint({ ...selectedComplaint, status: newStatus });
+      }
+    } catch (err) {
+      setError('Error updating status');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Handler for Send to MO button
+  const handleSendToMO = async () => {
+    if (!selectedComplaint) return;
+    await handleStatusChange(selectedComplaint._id || selectedComplaint.id, 'On MO Investigation');
+  };
 
   useEffect(() => {
-    if (role === 'Admin') {
+    if (role === 'Admin' || role === 'Medical Officer') {
       setLoading(true);
       axios.get('http://localhost:3002/api/complaints/all', { withCredentials: true })
-        .then(response => setComplaints(Array.isArray(response.data) ? response.data : []))
+        .then(response => {
+          const data = Array.isArray(response.data) ? response.data : [];
+          setComplaints(data);
+          // For MO, track complaints that ever had 'On MO Investigation' status
+          if (role === 'Medical Officer') {
+            setMoComplaintIds(prev => {
+              const newIds = data.filter(c => c.status === 'On MO Investigation').map(c => c._id || c.id);
+              const updated = Array.from(new Set([...prev, ...newIds]));
+              localStorage.setItem('moComplaintIds', JSON.stringify(updated));
+              return updated;
+            });
+          }
+        })
         .catch(() => setError('Error fetching complaints'))
         .finally(() => setLoading(false));
     }
@@ -30,13 +105,14 @@ const ComplaintManagement = () => {
     setSelectedComplaint(null);
   };
 
-  if (role !== 'Admin') {
-    return <h1>Medical Officer Complaints</h1>;
+
+  if (role !== 'Admin' && role !== 'Medical Officer') {
+    return <h1>Unauthorized</h1>;
   }
 
   return (
     <div>
-      <h1>Admin Complaints</h1>
+      <h1>Complaints</h1>
       {loading && <p>Loading...</p>}
       {error && <p style={{color: 'red'}}>{error}</p>}
       {!loading && !error && (
@@ -51,13 +127,20 @@ const ComplaintManagement = () => {
               <th>Complaint Type</th>
               <th>Status</th>
               <th>See more</th>
+                <th>Action</th>
             </tr>
           </thead>
           <tbody>
-            {complaints.length === 0 ? (
+            {(role === 'Medical Officer'
+              ? complaints.filter(c => moComplaintIds.includes(c._id || c.id))
+              : complaints
+            ).length === 0 ? (
               <tr><td colSpan={12} style={{ textAlign: 'center', padding: '20px' }}>No complaints found.</td></tr>
             ) : (
-              complaints.map((complaint) => (
+              (role === 'Medical Officer'
+                ? complaints.filter(c => moComplaintIds.includes(c._id || c.id))
+                : complaints
+              ).map((complaint) => (
                 <tr key={complaint._id || complaint.id} style={{ background: '#fff', transition: 'background 0.2s' }}>
                   <td>{complaint.orderId}</td>
                   <td>{complaint.createdAt ? new Date(complaint.createdAt).toLocaleString() : '-'}</td>
@@ -65,20 +148,42 @@ const ComplaintManagement = () => {
                   <td>{complaint.price}</td>
                   <td>{complaint.paymentMode}</td>
                   <td>{complaint.complaintType}</td>
-                  <td>{complaint.status}</td>
+                  <td>
+                    <select
+                      value={complaint.status}
+                      onChange={e => handleStatusChange(complaint._id || complaint.id, e.target.value)}
+                      style={{ padding: '4px', borderRadius: '4px' }}
+                    >
+                      {statusOptions.map(opt => (
+                        <option key={opt} value={opt}>{opt}</option>
+                      ))}
+                    </select>
+                  </td>
                   <td className="complaint-see-more">
                     <span
                       title="See more"
                       onClick={() => handleSeeMore(complaint)}
                       className="see-more-icon"
+                      style={{ cursor: 'pointer', display: 'inline-flex', alignItems: 'center' }}
                     >
+                      {/* Modern eye icon */}
                       <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="none" viewBox="0 0 24 24">
-                        <circle cx="12" cy="12" r="10" stroke="#1976d2" strokeWidth="2" fill="#fff" />
-                        <path d="M12 8a4 4 0 100 8 4 4 0 000-8zm0 2a2 2 0 110 4 2 2 0 010-4z" fill="#1976d2" />
-                        <circle cx="12" cy="12" r="1.5" fill="#fff" />
+                        <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z" stroke="#1976d2" strokeWidth="2" fill="#fff"/>
+                        <circle cx="12" cy="12" r="3" stroke="#1976d2" strokeWidth="2" fill="#1976d2"/>
                       </svg>
                     </span>
                   </td>
+                    <td>
+                      <select
+                        value={complaint.action || "-----"}
+                        onChange={e => handleActionChange(complaint._id || complaint.id, e.target.value)}
+                        style={{ padding: '4px', borderRadius: '4px' }}
+                      >
+                        <option value="-----">-----</option>
+                        <option value="Refund">Refund</option>
+                        <option value="Reject">Reject</option>
+                      </select>
+                    </td>
                 </tr>
               ))
             )}
@@ -139,8 +244,11 @@ const ComplaintManagement = () => {
             <div className="complaint-modal-description">{selectedComplaint.description || <span className="complaint-modal-no-description">No description</span>}</div>
             {/* Action Buttons */}
             <div className="complaint-modal-actions">
-              <button className="complaint-modal-btn send-mo">Send to MO</button>
-              <button className="complaint-modal-btn reply">Reply</button>
+              {role === 'Admin' ? (
+                <button className="complaint-modal-btn send-mo" onClick={handleSendToMO}>Send to MO</button>
+              ) : role === 'Medical Officer' ? (
+                <button className="complaint-modal-btn send-mo" onClick={() => handleStatusChange(selectedComplaint._id || selectedComplaint.id, 'MO Investigation Completed')}>Send to Admin</button>
+              ) : null}
             </div>
           </div>
         </div>

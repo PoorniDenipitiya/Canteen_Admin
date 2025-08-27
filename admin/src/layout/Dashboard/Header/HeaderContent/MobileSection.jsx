@@ -11,7 +11,7 @@ import Toolbar from '@mui/material/Toolbar';
 import Box from '@mui/material/Box';
 
 // project import
-import Search from './Search';
+// ...existing code...
 import Profile from './Profile';
 import Transitions from 'components/@extended/Transitions';
 
@@ -51,7 +51,7 @@ export default function MobileSection() {
   const iconBackColor = 'grey.100';
 
   return (
-    <>
+    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', width: '100%' }}>
       <Box sx={{ flexShrink: 0, ml: 0.75 }}>
         <IconButton
           sx={{ color: 'text.primary', bgcolor: open ? iconBackColorOpen : iconBackColor }}
@@ -90,8 +90,7 @@ export default function MobileSection() {
             <Paper sx={{ boxShadow: theme.customShadows.z1 }}>
               <ClickAwayListener onClickAway={handleClose}>
                 <AppBar color="inherit">
-                  <Toolbar>
-                    <Search />
+                  <Toolbar sx={{ display: 'flex', justifyContent: 'flex-end' }}>
                     <Profile />
                   </Toolbar>
                 </AppBar>
@@ -100,6 +99,6 @@ export default function MobileSection() {
           </Transitions>
         )}
       </Popper>
-    </>
+    </Box>
   );
 }

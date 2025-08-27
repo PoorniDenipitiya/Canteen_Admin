@@ -11,7 +11,7 @@ import Toolbar from '@mui/material/Toolbar';
 import Box from '@mui/material/Box';
 
 // project import
-import Search from './Search';
+// ...existing code...
 import Profile from './Profile';
 import Transitions from 'components/@extended/Transitions';
 
@@ -91,7 +91,8 @@ export default function MobileSection() {
               <ClickAwayListener onClickAway={handleClose}>
                 <AppBar color="inherit">
                   <Toolbar>
-                    <Search />
+                    {/* Add gap between collapsible menu and profile icon */}
+                    <Box sx={{ width: 16, display: 'inline-block' }} />
                     <Profile />
                   </Toolbar>
                 </AppBar>

@@ -1,4 +1,5 @@
-import { useRef, useState } from 'react';
+import axios from 'axios';
+import React, { useEffect, useState, useRef } from 'react';
 
 // material-ui
 import { useTheme } from '@mui/material/styles';
@@ -18,6 +19,7 @@ import Popper from '@mui/material/Popper';
 import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
+import NotificationBell from 'components/NotificationBell';
 
 // project import
 import MainCard from 'components/MainCard';
@@ -49,24 +51,91 @@ const actionSX = {
 
 // ==============================|| HEADER CONTENT - NOTIFICATION ||============================== //
 
+
 export default function Notification() {
   const theme = useTheme();
   const matchesXs = useMediaQuery(theme.breakpoints.down('md'));
-
   const anchorRef = useRef(null);
-  const [read, setRead] = useState(2);
   const [open, setOpen] = useState(false);
+  const [notifications, setNotifications] = useState([]);
+  const [count, setCount] = useState(0);
+  const [readIds, setReadIds] = useState(() => {
+    try {
+      const stored = localStorage.getItem('adminReadNotificationIds');
+      return stored ? JSON.parse(stored) : [];
+    } catch {
+      return [];
+    }
+  });
+
+  useEffect(() => {
+    const role = localStorage.getItem('userRole');
+    if (role === 'Admin') {
+      const fetchComplaints = async () => {
+        try {
+          const res = await axios.get('http://localhost:3002/api/complaints/all', { withCredentials: true });
+          const complaints = Array.isArray(res.data) ? res.data : [];
+          setNotifications(complaints);
+          // Only count unread
+          setCount(complaints.filter(c => !readIds.includes(c._id || c.id)).length);
+        } catch (err) {
+          setNotifications([]);
+          setCount(0);
+        }
+      };
+      fetchComplaints();
+      const interval = setInterval(fetchComplaints, 2000);
+      return () => clearInterval(interval);
+    } else {
+      // Canteen Owner logic (existing)
+      const fetchOrderPlaced = async () => {
+        try {
+          const canteenName = localStorage.getItem('canteenName') || '';
+          if (!canteenName) {
+            setNotifications([]);
+            setCount(0);
+            return;
+          }
+          const res = await axios.get(`http://localhost:3002/api/admin/orders?canteenName=${canteenName}`);
+          const orders = Array.isArray(res.data) ? res.data : [];
+          const placedOrders = orders.filter(o => o.status === 'order placed');
+          setNotifications(placedOrders);
+          setCount(placedOrders.length);
+        } catch (err) {
+          setNotifications([]);
+          setCount(0);
+        }
+      };
+      fetchOrderPlaced();
+      const interval = setInterval(fetchOrderPlaced, 2000);
+      return () => clearInterval(interval);
+    }
+  }, [readIds]);
+
   const handleToggle = () => {
     setOpen((prevOpen) => !prevOpen);
   };
-
   const handleClose = (event) => {
     if (anchorRef.current && anchorRef.current.contains(event.target)) {
       return;
     }
     setOpen(false);
   };
-
+  const handleNotificationClick = (item) => {
+    const role = localStorage.getItem('userRole');
+    if (role === 'Admin') {
+      // Mark as read and persist in localStorage
+      setReadIds(prev => {
+        const updated = [...prev, item._id || item.id];
+        localStorage.setItem('adminReadNotificationIds', JSON.stringify(updated));
+        return updated;
+      });
+      setCount(prev => prev - 1);
+      window.location.href = '/complaint-management';
+    } else {
+      window.location.href = '/order';
+    }
+  };
   const iconBackColorOpen = 'grey.100';
 
   return (
@@ -81,7 +150,7 @@ export default function Notification() {
         aria-haspopup="true"
         onClick={handleToggle}
       >
-        <Badge badgeContent={read} color="primary">
+        <Badge badgeContent={count} color="primary">
           <BellOutlined />
         </Badge>
       </IconButton>
@@ -103,17 +172,6 @@ export default function Notification() {
                   elevation={0}
                   border={false}
                   content={false}
-                  secondary={
-                    <>
-                      {read > 0 && (
-                        <Tooltip title="Mark as all read">
-                          <IconButton color="success" size="small" onClick={() => setRead(0)}>
-                            <CheckCircleOutlined style={{ fontSize: '1.15rem' }} />
-                          </IconButton>
-                        </Tooltip>
-                      )}
-                    </>
-                  }
                 >
                   <List
                     component="nav"
@@ -127,113 +185,48 @@ export default function Notification() {
                       }
                     }}
                   >
-                    <ListItemButton selected={read > 0}>
-                      <ListItemAvatar>
-                        <Avatar sx={{ color: 'success.main', bgcolor: 'success.lighter' }}>
-                          <GiftOutlined />
-                        </Avatar>
-                      </ListItemAvatar>
-                      <ListItemText
-                        primary={
-                          <Typography variant="h6">
-                            It&apos;s{' '}
-                            <Typography component="span" variant="subtitle1">
-                              Cristina danny&apos;s
-                            </Typography>{' '}
-                            birthday today.
-                          </Typography>
-                        }
-                        secondary="2 min ago"
-                      />
-                      <ListItemSecondaryAction>
-                        <Typography variant="caption" noWrap>
-                          3:00 AM
-                        </Typography>
-                      </ListItemSecondaryAction>
-                    </ListItemButton>
-                    <Divider />
-                    <ListItemButton>
-                      <ListItemAvatar>
-                        <Avatar sx={{ color: 'primary.main', bgcolor: 'primary.lighter' }}>
-                          <MessageOutlined />
-                        </Avatar>
-                      </ListItemAvatar>
-                      <ListItemText
-                        primary={
-                          <Typography variant="h6">
-                            <Typography component="span" variant="subtitle1">
-                              Aida Burg
-                            </Typography>{' '}
-                            commented your post.
-                          </Typography>
-                        }
-                        secondary="5 August"
-                      />
-                      <ListItemSecondaryAction>
-                        <Typography variant="caption" noWrap>
-                          6:00 PM
-                        </Typography>
-                      </ListItemSecondaryAction>
-                    </ListItemButton>
-                    <Divider />
-                    <ListItemButton selected={read > 0}>
-                      <ListItemAvatar>
-                        <Avatar sx={{ color: 'error.main', bgcolor: 'error.lighter' }}>
-                          <SettingOutlined />
-                        </Avatar>
-                      </ListItemAvatar>
-                      <ListItemText
-                        primary={
-                          <Typography variant="h6">
-                            Your Profile is Complete &nbsp;
-                            <Typography component="span" variant="subtitle1">
-                              60%
-                            </Typography>{' '}
-                          </Typography>
-                        }
-                        secondary="7 hours ago"
-                      />
-                      <ListItemSecondaryAction>
-                        <Typography variant="caption" noWrap>
-                          2:45 PM
-                        </Typography>
-                      </ListItemSecondaryAction>
-                    </ListItemButton>
-                    <Divider />
-                    <ListItemButton>
-                      <ListItemAvatar>
-                        <Avatar sx={{ color: 'primary.main', bgcolor: 'primary.lighter' }}>C</Avatar>
-                      </ListItemAvatar>
-                      <ListItemText
-                        primary={
-                          <Typography variant="h6">
-                            <Typography component="span" variant="subtitle1">
-                              Cristina Danny
-                            </Typography>{' '}
-                            invited to join{' '}
-                            <Typography component="span" variant="subtitle1">
-                              Meeting.
-                            </Typography>
-                          </Typography>
-                        }
-                        secondary="Daily scrum meeting time"
-                      />
-                      <ListItemSecondaryAction>
-                        <Typography variant="caption" noWrap>
-                          9:10 PM
-                        </Typography>
-                      </ListItemSecondaryAction>
-                    </ListItemButton>
-                    <Divider />
-                    <ListItemButton sx={{ textAlign: 'center', py: `${12}px !important` }}>
-                      <ListItemText
-                        primary={
-                          <Typography variant="h6" color="primary">
-                            View All
-                          </Typography>
-                        }
-                      />
-                    </ListItemButton>
+                    {notifications.length === 0 && (
+                      <ListItemButton>
+                        <ListItemText primary={<Typography variant="body2">No notifications</Typography>} />
+                      </ListItemButton>
+                    )}
+                    {localStorage.getItem('userRole') === 'Admin'
+                      ? notifications.filter(c => !readIds.includes(c._id || c.id)).map(complaint => (
+                          <ListItemButton key={complaint._id || complaint.id} onClick={() => handleNotificationClick(complaint)}>
+                            <ListItemAvatar>
+                              <Avatar sx={{ color: 'error.main', bgcolor: 'error.lighter' }}>
+                                <MessageOutlined />
+                              </Avatar>
+                            </ListItemAvatar>
+                            <ListItemText
+                              primary={<Typography variant="h6">Complaint received for Order {complaint.orderId}</Typography>}
+                              secondary={`Canteen: ${complaint.canteenName} | ${complaint.complaintType}`}
+                            />
+                            <ListItemSecondaryAction>
+                              <Typography variant="caption" noWrap>
+                                {complaint.createdAt ? new Date(complaint.createdAt).toLocaleString() : '-'}
+                              </Typography>
+                            </ListItemSecondaryAction>
+                          </ListItemButton>
+                        ))
+                      : notifications.map(order => (
+                          <ListItemButton key={order._id} onClick={() => handleNotificationClick(order)}>
+                            <ListItemAvatar>
+                              <Avatar sx={{ color: 'primary.main', bgcolor: 'primary.lighter' }}>
+                                <MessageOutlined />
+                              </Avatar>
+                            </ListItemAvatar>
+                            <ListItemText
+                              primary={<Typography variant="h6">Order received from {order.orderId}</Typography>}
+                              secondary={new Date(order.orderedDate).toLocaleDateString()}
+                            />
+                            <ListItemSecondaryAction>
+                              <Typography variant="caption" noWrap>
+                                {new Date(order.orderedDate).toLocaleTimeString()}
+                              </Typography>
+                            </ListItemSecondaryAction>
+                          </ListItemButton>
+                        ))}
                   </List>
                 </MainCard>
               </ClickAwayListener>

@@ -93,6 +93,8 @@ const OrderManagement = () => {
       }
     };
     fetchOrderStatusCounts();
+    const interval = setInterval(fetchOrderStatusCounts, 2000);
+    return () => clearInterval(interval);
   }, [canteenName]);
 
   return (

@@ -126,6 +126,16 @@
   color: #fff;
 }
 
+.complaint-modal-btn.refund {
+  background: #ffb300;
+  color: #fff;
+}
+
+.complaint-modal-btn.reject {
+  background: #d32f2f;
+  color: #fff;
+}
+
 .see-more-icon {
   display: inline-flex;
   align-items: center;

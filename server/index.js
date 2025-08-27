@@ -59,7 +59,7 @@ app.use(express.json());
 app.use(cookieParser());
 app.use(cors({
   origin: ['http://localhost:3000', 'http://localhost:3001'],
-  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
   credentials: true
 }));
 
@@ -69,6 +69,14 @@ app.use(bodyParser.json());
 app.use("/api/category", categoryRoutes);
 app.use("/api/food", foodRoutes);
 app.use("/api/admin/orders", orderRoutes);
+const notificationRoutes = require('./Routes/notificationRoutes');
+const complaintRoutes = require('./Routes/complaintRoutes');
+app.use("/api/notifications", (req, res, next) => {
+  console.log('Received request to /api/notifications');
+  next();
+}, notificationRoutes);
+app.use("/api/complaints", complaintRoutes);
+
 
 // Your existing routes and middleware
 app.get('/api/categories', async (req, res) => {

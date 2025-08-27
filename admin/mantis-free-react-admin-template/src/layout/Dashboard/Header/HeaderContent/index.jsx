@@ -5,7 +5,7 @@ import Link from '@mui/material/Link';
 import Box from '@mui/material/Box';
 
 // project import
-import Search from './Search';
+// ...existing code...
 import Profile from './Profile';
 import Notification from './Notification';
 import MobileSection from './MobileSection';
@@ -20,7 +20,7 @@ export default function HeaderContent() {
 
   return (
     <>
-      {!downLG && <Search />}
+      {/* Add gap between collapsible menu and notification icon for downLG */}
       {downLG && <Box sx={{ width: '100%', ml: 1 }} />}
       <IconButton
         component={Link}
@@ -34,6 +34,8 @@ export default function HeaderContent() {
         <GithubOutlined />
       </IconButton>
 
+      {/* Add gap between collapsible menu and notification icon for desktop */}
+      {!downLG && <Box sx={{ width: 16, display: 'inline-block' }} />}
       <Notification />
       {!downLG && <Profile />}
       {downLG && <MobileSection />}

@@ -95,7 +95,7 @@ function transitions({ children, position = 'top-left', type = 'grow', direction
           <Box sx={positionSX}>{children}</Box>
         </Slide>
       )}
-
+ 
       {type === 'zoom' && (
         <Zoom {...others}>
           <Box sx={positionSX}>{children}</Box>

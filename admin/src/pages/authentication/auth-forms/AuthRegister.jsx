@@ -94,8 +94,10 @@ export default function AuthRegister() {
           canteenName: Yup.string().when('role', {
             is: 'Canteen Owner', // Directly check if the role is "Canteen Owner"
            // then: Yup.string().required('Canteen Name is required'), // Make canteenName required
-           then: (validationSchema) => validationSchema.required('Canteen Name is required'), 
-           otherwise: Yup.string().notRequired(), // Not required for other roles
+           //then: (validationSchema) => validationSchema.required('Canteen Name is required'), 
+           then: () => Yup.string().required('Canteen Name is required'),
+           //otherwise: Yup.string().notRequired(), // Not required for other roles
+           otherwise: () => Yup.string().notRequired(),
           }),
           email: Yup.string().email('Must be a valid email').max(255).required('Email is required'),
           username: Yup.string().max(255).required('Username is required'),
