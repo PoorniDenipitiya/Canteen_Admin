@@ -21,6 +21,7 @@ import Typography from '@mui/material/Typography';
 import * as Yup from 'yup';
 import { Formik } from 'formik';
 import axios from 'axios';
+import config from '../../../config/appConfig';
 
 // project import
 import AnimateButton from 'components/@extended/AnimateButton';
@@ -47,7 +48,7 @@ export default function AuthLogin({ isDemo = false }) {
 
   const handleSubmit = async (values, { setErrors, setStatus, setSubmitting }) => {
     try {
-      const response = await axios.post('http://localhost:5000/api/login', values);
+  const response = await axios.post(`${config.api_base_urls.admin}/api/login`, values);
   
       // Log the response to debug
       console.log('Backend response:', response.data);

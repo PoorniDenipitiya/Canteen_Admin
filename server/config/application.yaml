@@ -1,0 +1,9 @@
+frontend:
+  urls:
+    - "http://localhost:3000"
+    - "http://localhost:3001"
+
+backend:
+  apis:
+    user_portal: "http://localhost:3002"
+    admin_portal: "http://localhost:5000"

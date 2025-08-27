@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
+import config from '../../config/appConfig';
 import './ComplaintManagement.css';
 
 const ComplaintManagement = () => {
@@ -8,12 +9,12 @@ const ComplaintManagement = () => {
     try {
       setLoading(true);
       await axios.put(
-        `http://localhost:5000/api/complaints/${complaintId}/action`,
+        `${config.api_base_urls.admin}/api/complaints/${complaintId}/action`,
         { action: newAction },
         { withCredentials: true }
       );
       // Refresh complaints list
-      const response = await axios.get('http://localhost:3002/api/complaints/all', { withCredentials: true });
+  const response = await axios.get(`${config.api_base_urls.user}/api/complaints/all`, { withCredentials: true });
       setComplaints(Array.isArray(response.data) ? response.data : []);
       // If modal is open, update selectedComplaint action locally
       if (selectedComplaint && selectedComplaint._id === complaintId) {
@@ -49,12 +50,12 @@ const ComplaintManagement = () => {
     try {
       setLoading(true);
       await axios.put(
-        `http://localhost:5000/api/complaints/${complaintId}/status`,
+        `${config.api_base_urls.admin}/api/complaints/${complaintId}/status`,
         { status: newStatus },
         { withCredentials: true }
       );
       // Refresh complaints list
-      const response = await axios.get('http://localhost:3002/api/complaints/all', { withCredentials: true });
+  const response = await axios.get(`${config.api_base_urls.user}/api/complaints/all`, { withCredentials: true });
       setComplaints(Array.isArray(response.data) ? response.data : []);
       // If modal is open, update selectedComplaint status locally
       if (selectedComplaint && selectedComplaint._id === complaintId) {
@@ -76,7 +77,7 @@ const ComplaintManagement = () => {
   useEffect(() => {
     if (role === 'Admin' || role === 'Medical Officer') {
       setLoading(true);
-      axios.get('http://localhost:3002/api/complaints/all', { withCredentials: true })
+  axios.get(`${config.api_base_urls.user}/api/complaints/all`, { withCredentials: true })
         .then(response => {
           const data = Array.isArray(response.data) ? response.data : [];
           setComplaints(data);

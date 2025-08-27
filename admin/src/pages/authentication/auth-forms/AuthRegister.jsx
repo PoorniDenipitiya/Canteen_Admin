@@ -16,6 +16,7 @@ import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
 import MenuItem from '@mui/material/MenuItem';
 import axios from 'axios';
+import config from '../../../config/appConfig';
 import Select from '@mui/material/Select';
 
 // third party
@@ -57,7 +58,7 @@ export default function AuthRegister() {
 
   const handleSubmit = async (values, { setErrors, setStatus, setSubmitting }) => {
     try {
-      const response = await axios.post('http://localhost:5000/api/register', values);
+  const response = await axios.post(`${config.api_base_urls.admin}/api/register`, values);
       if (response.data.success) {
         localStorage.setItem('userName', values.username); // Store the username in local storage
         localStorage.setItem('userRole', values.role); // Store the role in local storage

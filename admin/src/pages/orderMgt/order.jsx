@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
+import config from '../../config/appConfig';
 import "./order.css";
 
 const statusOptions = ["order placed","accepted", "processing", "order ready", "collected"];
@@ -19,7 +20,7 @@ const Order = () => {
     if (!canteenName) return;
 
     axios
-      .get(`http://localhost:3002/api/admin/orders?canteenName=${canteenName}`)
+    .get(`${config.api_base_urls.user}/api/admin/orders?canteenName=${canteenName}`)
       .then((res) => {
         console.log("API response:", res.data);
         if (Array.isArray(res.data)) {
@@ -43,7 +44,7 @@ const Order = () => {
   const handleStatusChange = async (orderId, newStatus) => {
   try {
     // Update status in backend (Admin API runs on port 5000!)
-    await axios.patch(`http://localhost:5000/api/admin/orders/${orderId}/status`, {
+  await axios.patch(`${config.api_base_urls.admin}/api/admin/orders/${orderId}/status`, {
       status: newStatus,
     });
 

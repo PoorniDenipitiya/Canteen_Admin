@@ -1,131 +1,7 @@
-/*import React, { useState } from 'react';
-import axios from 'axios';
-import './reference.css';
-
-const ReferenceMgt = () => {
-    const [formType, setFormType] = useState('category');
-    const [formData, setFormData] = useState({
-        category: '',
-        image: '',
-        description: ''
-    });
-
-    const handleFormSwitch = (type) => {
-        setFormType(type);
-    };
-
-    const handleChange = (e) => {
-        setFormData({ ...formData, [e.target.name]: e.target.value });
-    };
-
-    const handleFileChange = (e) => {
-        setFormData({ ...formData, [e.target.name]: e.target.files[0] });
-    };
-
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        try {
-            const formDataToSend = new FormData();
-            formDataToSend.append('category', formData.category);
-            formDataToSend.append('image', formData.image);
-            formDataToSend.append('description', formData.description);
-
-            const response = await axios.post('http://localhost:5000/api/category/register', formDataToSend, {
-                headers: {
-                    'Content-Type': 'multipart/form-data'
-                }
-            });
-
-            if (response.data.success) {
-                window.location.href = 'http://localhost:3000/';
-            }
-        } catch (error) {
-            console.error(error);
-        }
-    };
-
-    return (
-        <div className="container">
-            <h1>Reference Management</h1>
-            <div className="tabs">
-                <div
-                    className={`tab ${formType === 'category' ? 'active' : ''}`}
-                    onClick={() => handleFormSwitch('category')}
-                >
-                    Category Registration
-                </div>
-                <div
-                    className={`tab ${formType === 'food' ? 'active' : ''}`}
-                    onClick={() => handleFormSwitch('food')}
-                >
-                    Food Registration
-                </div>
-            </div>
-
-            {formType === 'category' && (
-                <form onSubmit={handleSubmit}>
-                    <h2>Category Registration</h2>
-                    <div>
-                        <label>Category:</label>
-                        <input type="text" name="category" value={formData.category} onChange={handleChange} />
-                    </div>
-                    <div>
-                        <label>Image:</label>
-                        <input type="file" name="image" onChange={handleFileChange} />
-                    </div>
-                    <div>
-                        <label>Description:</label>
-                        <textarea name="description" value={formData.description} onChange={handleChange}></textarea>
-                    </div>
-                    <button type="submit">Submit</button>
-                </form>
-            )}
-
-            {formType === 'food' && (
-                <form>
-                    <h2>Food Registration</h2>
-                   <div>
-                        <label>Canteen Name:</label>
-                        <input type="text" name="canteen" />
-                    </div> 
-                    <div>
-                        <label>Category:</label>
-                        <input type="text" name="category" />
-                    </div>
-                    <div>
-                        <label>Food:</label>
-                        <input type="text" name="food" />
-                    </div>
-                    <div>
-                        <label>Price:</label>
-                        <input type="number" name="price" />
-                    </div>
-                    <div>
-                        <label>Image:</label>
-                        <input type="file" name="image" />
-                    </div>
-                    <div>
-                        <label>Description:</label>
-                        <textarea name="description"></textarea>
-                    </div>
-                    <div>
-                        <label>Available Time:</label>
-                        <textarea name="time"></textarea>
-                    </div>
-                    <button type="submit">Submit</button>
-                </form>
-            )}
-        </div>
-    );
-};
-
-export default ReferenceMgt;
-
-*/
-
 import React, { useState } from 'react';
 import axios from 'axios';
 import './reference.css';
+import config from '../../config/appConfig';
 
 const ReferenceMgt = () => {
   const [formType, setFormType] = useState('category');
@@ -199,7 +75,7 @@ const ReferenceMgt = () => {
         });
 
         // Send data to the backend
-        const response = await axios.post('http://localhost:5000/api/category/register', formDataToSend, {
+  const response = await axios.post(`${config.api_base_urls.admin}/api/category/register`, formDataToSend, {
           headers: {
             'Content-Type': 'multipart/form-data'
           }
@@ -257,7 +133,7 @@ const ReferenceMgt = () => {
         });
 
         // Send data to the backend
-        const response = await axios.post('http://localhost:5000/api/food/register', formDataToSend, {
+  const response = await axios.post(`${config.api_base_urls.admin}/api/food/register`, formDataToSend, {
           headers: {
             'Content-Type': 'multipart/form-data'
           }

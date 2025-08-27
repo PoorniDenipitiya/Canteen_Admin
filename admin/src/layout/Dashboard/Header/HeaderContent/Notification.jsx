@@ -1,4 +1,5 @@
 import axios from 'axios';
+import config from '../../../../config/appConfig';
 import React, { useEffect, useState, useRef } from 'react';
 
 // material-ui
@@ -73,7 +74,7 @@ export default function Notification() {
     if (role === 'Admin') {
       const fetchComplaints = async () => {
         try {
-          const res = await axios.get('http://localhost:3002/api/complaints/all', { withCredentials: true });
+          const res = await axios.get(`${config.api_base_urls.user}/api/complaints/all`, { withCredentials: true });
           const complaints = Array.isArray(res.data) ? res.data : [];
           setNotifications(complaints);
           // Only count unread
@@ -96,7 +97,7 @@ export default function Notification() {
             setCount(0);
             return;
           }
-          const res = await axios.get(`http://localhost:3002/api/admin/orders?canteenName=${canteenName}`);
+          const res = await axios.get(`${config.api_base_urls.user}/api/admin/orders?canteenName=${canteenName}`);
           const orders = Array.isArray(res.data) ? res.data : [];
           const placedOrders = orders.filter(o => o.status === 'order placed');
           setNotifications(placedOrders);

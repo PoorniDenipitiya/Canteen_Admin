@@ -45,6 +45,7 @@ const mongoose = require('mongoose');
 const cookieParser = require('cookie-parser');
 const bodyParser = require("body-parser");
 const cors = require('cors');
+const config = require('./config/loadConfig');
 const authRoutes = require('./Routes/authRoutes');
 const categoryRoutes = require("./Routes/categoryRoutes");
 const foodRoutes = require("./Routes/foodRoutes");
@@ -58,7 +59,7 @@ const app = express();
 app.use(express.json());
 app.use(cookieParser());
 app.use(cors({
-  origin: ['http://localhost:3000', 'http://localhost:3001'],
+  origin: config.frontend.urls,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
   credentials: true
 }));

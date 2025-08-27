@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
+import config from '../../config/appConfig';
 import './menu.css'; // Add styles for the table
 import { IconButton, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Button } from '@mui/material'; // Import Material-UI IconButton
 import DeleteIcon from '@mui/icons-material/Delete'; // Import Material-UI Delete Icon
@@ -21,7 +22,7 @@ const Menu = () => {
   useEffect(() => {
     const fetchFoodItems = async () => {
       try {
-        const response = await axios.get('http://localhost:5000/api/foods');
+  const response = await axios.get(`${config.api_base_urls.admin}/api/foods`);
         const foodsData = response.data;
 
         // Filter food items by canteen name
@@ -45,7 +46,7 @@ const Menu = () => {
         return;
       }
       console.log("Deleting food item with ID:", selectedFoodId); // Debug log
-      const response = await axios.delete(`http://localhost:5000/api/food/${selectedFoodId}`); // Ensure this matches the backend route
+  const response = await axios.delete(`${config.api_base_urls.admin}/api/food/${selectedFoodId}`); // Ensure this matches the backend route
       if (response.status === 200) {
         setFoodItems((prevItems) => prevItems.filter((food) => food._id !== selectedFoodId));
         setOpenDialog(false);

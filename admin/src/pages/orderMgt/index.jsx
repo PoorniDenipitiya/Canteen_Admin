@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate} from 'react-router-dom';
 import axios from 'axios';
+import config from '../../config/appConfig';
 import './index.css'; // Add styles for the modern tabular format
 
 
@@ -22,11 +23,11 @@ const OrderManagement = () => {
     const fetchCategoriesAndFoods = async () => {
       try {
         // Fetch categories
-        const categoryResponse = await axios.get('http://localhost:5000/api/categories');
+  const categoryResponse = await axios.get(`${config.api_base_urls.admin}/api/categories`);
         const categoriesData = categoryResponse.data;
   
         // Fetch food items
-        const foodResponse = await axios.get('http://localhost:5000/api/foods');
+  const foodResponse = await axios.get(`${config.api_base_urls.admin}/api/foods`);
         const foodsData = foodResponse.data;
   
         // Filter food items by canteen name
@@ -66,7 +67,7 @@ const OrderManagement = () => {
     const fetchOrderStatusCounts = async () => {
       try {
         if (!canteenName) return;
-        const response = await axios.get(`http://localhost:3002/api/admin/orders?canteenName=${canteenName}`);
+  const response = await axios.get(`${config.api_base_urls.user}/api/admin/orders?canteenName=${canteenName}`);
         const orders = Array.isArray(response.data) ? response.data : [];
         // Filter orders for today
         const today = new Date();
