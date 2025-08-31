@@ -2,6 +2,8 @@ frontend:
   urls:
     - "http://localhost:3000"
     - "http://localhost:3001"
+    - "https://canteenz.vercel.app"
+    - "https://admin-canteenz.vercel.app"
 
 backend:
   apis:
