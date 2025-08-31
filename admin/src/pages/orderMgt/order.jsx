@@ -3,7 +3,7 @@ import axios from "axios";
 import config from '../../config/appConfig';
 import "./order.css";
 
-const statusOptions = ["order placed","accepted", "processing", "order ready", "collected"];
+const statusOptions = ["order placed","accepted", "processing", "order ready", "collected", "uncollected", "fined"];
 
 const Order = () => {
   const [orders, setOrders] = useState([]);
@@ -72,6 +72,8 @@ const Order = () => {
             <th>Items</th>
             <th>No. of Items</th>
             <th>Price</th>
+            <th>Penalty Charge</th>
+            <th>Total with Penalty</th>
             <th>Payment Mode</th>
             <th>Status</th>
           </tr>
@@ -92,7 +94,15 @@ const Order = () => {
               <td>
                 {order.items.reduce((sum, item) => sum + item.quantity, 0)}
               </td>
-              <td>Rs. {order.price}</td>
+              <td>Rs. {order.originalPrice || order.price}</td>
+              <td>
+                {order.penaltyAmount && order.penaltyAmount > 0 ? (
+                  <span style={{ color: 'red', fontWeight: 'bold' }}>
+                    Rs. {Number(order.penaltyAmount).toLocaleString()}
+                  </span>
+                ) : '-'}
+              </td>
+              <td>Rs. {order.price.toLocaleString()}</td>
               <td>{order.paymentMode}</td>
               <td>
                 <select

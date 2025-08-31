@@ -9,7 +9,7 @@ const OrderManagement = () => {
   const navigate = useNavigate();
   const [categoriesWithFoodCount, setCategoriesWithFoodCount] = useState([]);
   const [canteenName, setCanteenName] = useState('');
-  const statusOptions = ["order placed", "accepted", "processing", "order ready", "collected"];
+  const statusOptions = ["order placed", "accepted", "processing", "order ready", "collected", "uncollected", "fined"];
   const [orderStatusCounts, setOrderStatusCounts] = useState({});
 
   // Fetch canteen name from localStorage

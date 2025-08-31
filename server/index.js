@@ -50,6 +50,7 @@ const authRoutes = require('./Routes/authRoutes');
 const categoryRoutes = require("./Routes/categoryRoutes");
 const foodRoutes = require("./Routes/foodRoutes");
 const orderRoutes = require('./Routes/orderRoutes');
+const { startOrderStatusScheduler } = require('./util/orderStatusScheduler');
 require('dotenv').config();
 const Category = require('./Models/CategoryModel');
 const Food = require('./Models/FoodModel');
@@ -105,6 +106,9 @@ mongoose.connect(process.env.MONGO_URI, {
   //useNewUrlParser: true,
   //useUnifiedTopology: true
 }).then(() => {
+  // Start the order status scheduler after database connection
+  startOrderStatusScheduler();
+  
   app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
   });

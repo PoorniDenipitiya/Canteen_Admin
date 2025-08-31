@@ -32,6 +32,28 @@ router.patch("/:orderId/status", async (req, res) => {
       return res.status(404).json({ error: "Order not found" });
     }
 
+    // If order is marked as collected and has penalty amount, update uncollected orders to fined
+    if (status === "collected" && updated.penaltyAmount > 0) {
+      try {
+        // Find and update uncollected orders for this user in this canteen with cash payment
+        const result = await Order.updateMany(
+          {
+            userId: updated.userId,
+            canteenName: updated.canteenName,
+            status: "uncollected",
+            paymentMode: "cash"
+          },
+          {
+            status: "fined"
+          }
+        );
+        
+        console.log(`Updated ${result.modifiedCount} uncollected orders to fined status for user ${updated.userId} in canteen ${updated.canteenName}`);
+      } catch (error) {
+        console.error('Error updating uncollected orders to fined:', error);
+      }
+    }
+
     // Find user email from users collection
     const user = await Users.findById(updated.userId);
     if (user && user.email) {

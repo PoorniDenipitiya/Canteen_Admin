@@ -57,3 +57,11 @@
   background: #f3f4f6;
   color: #374151;
 }
+.status-uncollected {
+  background: #fee2e2;
+  color: #991b1b;
+}
+.status-fined {
+  background: #e9d5ff;
+  color: #581c87;
+}
