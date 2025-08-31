@@ -7,5 +7,5 @@ frontend:
 
 backend:
   apis:
-    user_portal: "https://canteenweb-production.up.railway.app/"
-    admin_portal: "https://canteenadmin-production-cdae.up.railway.app/"
+    user_portal: "https://canteenweb-production.up.railway.app"
+    admin_portal: "https://canteenadmin-production-cdae.up.railway.app"
