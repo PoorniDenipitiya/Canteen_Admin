@@ -2,10 +2,10 @@ frontend:
   urls:
     - "http://localhost:3000"
     - "http://localhost:3001"
-    - "https://canteenz.vercel.app"
-    - "https://admin-canteenz.vercel.app"
+    - "https://canteen-web-mu.vercel.app"
+    - "https://canteen-admin-orcin.vercel.app"
 
 backend:
   apis:
-    user_portal: "http://localhost:3002"
-    admin_portal: "http://localhost:5000"
+    user_portal: "https://canteenweb-production.up.railway.app/"
+    admin_portal: "https://canteenadmin-production-cdae.up.railway.app/"
