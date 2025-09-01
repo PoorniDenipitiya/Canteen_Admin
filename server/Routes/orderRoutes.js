@@ -17,6 +17,79 @@ const transporter = nodemailer.createTransport({
   }
 });
 
+// GET orders by canteen name for dashboard
+router.get("/canteen/:canteenName", async (req, res) => {
+  const { canteenName } = req.params;
+  
+  try {
+    const orders = await Order.find({ canteenName: decodeURIComponent(canteenName) })
+      .populate('userId', 'username email')
+      .sort({ orderedDate: -1 });
+    
+    res.status(200).json(orders);
+  } catch (err) {
+    res.status(500).json({ error: "Failed to fetch orders", details: err.message });
+  }
+});
+
+// GET dashboard statistics for canteen
+router.get("/dashboard/:canteenName", async (req, res) => {
+  const { canteenName } = req.params;
+  
+  try {
+    const orders = await Order.find({ canteenName: decodeURIComponent(canteenName) });
+    
+    // Calculate statistics
+    const totalOrders = orders.length;
+    const prePaidOrders = orders.filter(order => order.paymentMode === 'online').length;
+    const postPaidOrders = orders.filter(order => order.paymentMode === 'cash').length;
+    const finedOrders = orders.filter(order => order.status === 'fined').length;
+    
+    // Calculate unique customers
+    const uniqueCustomers = new Set(orders.map(order => order.userId.toString()));
+    const totalCustomers = uniqueCustomers.size;
+    
+    // Calculate total sales
+    const totalSales = orders.reduce((sum, order) => sum + order.price, 0);
+    
+    // Generate monthly data
+    const monthlyData = generateMonthlyData(orders);
+    
+    res.status(200).json({
+      totalOrders,
+      prePaidOrders,
+      postPaidOrders,
+      finedOrders,
+      totalCustomers,
+      totalSales,
+      monthlyData
+    });
+  } catch (err) {
+    res.status(500).json({ error: "Failed to fetch dashboard data", details: err.message });
+  }
+});
+
+const generateMonthlyData = (orders) => {
+  const months = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
+  
+  return months.map((month, index) => {
+    const monthOrders = orders.filter(order => {
+      const orderDate = new Date(order.orderedDate);
+      return orderDate.getMonth() === index;
+    });
+    
+    const sales = monthOrders.reduce((sum, order) => sum + order.price, 0);
+    const uniqueCustomers = new Set(monthOrders.map(order => order.userId.toString())).size;
+    
+    return {
+      month,
+      sales,
+      customers: uniqueCustomers,
+      orders: monthOrders.length
+    };
+  });
+};
+
 // PATCH status update route
 router.patch("/:orderId/status", async (req, res) => {
   const { orderId } = req.params;

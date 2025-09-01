@@ -6,6 +6,21 @@ const AdminUser = require('../Models/UserModel');
 const User = require('../Models/UsersModel');
 const nodemailer = require('nodemailer');
 
+// GET complaints by canteen name for dashboard
+router.get('/canteen/:canteenName', async (req, res) => {
+  const { canteenName } = req.params;
+  
+  try {
+    const complaints = await Complaint.find({ canteenName: decodeURIComponent(canteenName) })
+      .populate('userId', 'username email')
+      .sort({ createdAt: -1 });
+    
+    res.status(200).json(complaints);
+  } catch (err) {
+    res.status(500).json({ error: "Failed to fetch complaints", details: err.message });
+  }
+});
+
 // Update complaint status and send email to user
 
 router.put('/:id/status', async (req, res) => {

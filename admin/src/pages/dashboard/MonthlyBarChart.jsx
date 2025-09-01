@@ -26,7 +26,7 @@ const barChartOptions = {
     enabled: false
   },
   xaxis: {
-    categories: ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'],
+    categories: ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'],
     axisBorder: {
       show: false
     },
@@ -44,28 +44,43 @@ const barChartOptions = {
 
 // ==============================|| MONTHLY BAR CHART ||============================== //
 
-export default function MonthlyBarChart() {
+export default function MonthlyBarChart({ data = [] }) {
   const theme = useTheme();
 
   const { primary, secondary } = theme.palette.text;
   const info = theme.palette.info.light;
 
-  const [series] = useState([
+  const [series, setSeries] = useState([
     {
-      data: [80, 95, 70, 42, 65, 55, 78]
+      name: 'Sales',
+      data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
     }
   ]);
 
   const [options, setOptions] = useState(barChartOptions);
 
   useEffect(() => {
+    if (data && data.length > 0) {
+      const salesData = data.map(item => item.sales || 0);
+      
+      setSeries([
+        {
+          name: 'Sales',
+          data: salesData
+        }
+      ]);
+    }
+  }, [data]);
+
+  useEffect(() => {
     setOptions((prevState) => ({
       ...prevState,
       colors: [info],
       xaxis: {
+        ...prevState.xaxis,
         labels: {
           style: {
-            colors: [secondary, secondary, secondary, secondary, secondary, secondary, secondary]
+            colors: Array(12).fill(secondary)
           }
         }
       }

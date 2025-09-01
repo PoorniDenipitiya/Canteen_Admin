@@ -75,7 +75,14 @@ export function getMenuItemsByRole(role) {
 
   switch (role) {
     case 'Admin':
-      return allItems;
+      return [
+        dashboard,
+        pages,
+        {
+          ...utilities,
+          children: utilities.children.filter(item => !['paymentManagement', 'orderManagement'].includes(item.id))
+        }
+      ];
     /*case 'Medical Officer':
       return [
         dashboard,
@@ -96,10 +103,6 @@ export function getMenuItemsByRole(role) {
         {
           ...utilities,
           children: utilities.children.filter(item => item.id === 'complaintManagement')
-        },
-        {
-          ...support,
-          children: support.children.filter(item => item.id === 'reports')
         }
       ];
     case 'Canteen Owner':
@@ -107,11 +110,7 @@ export function getMenuItemsByRole(role) {
         dashboard,
         {
           ...utilities,
-          children: utilities.children.filter(item => ['referenceManagement', 'orderManagement', 'paymentManagement'].includes(item.id))
-        },
-        {
-          ...support,
-          children: support.children.filter(item => item.id === 'reports')
+          children: utilities.children.filter(item => ['referenceManagement', 'orderManagement'].includes(item.id))
         }
       ];
       default:

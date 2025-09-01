@@ -2,13 +2,16 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import config from '../../config/appConfig';
 import './menu.css'; // Add styles for the table
-import { IconButton, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Button } from '@mui/material'; // Import Material-UI IconButton
+import { IconButton, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Button, FormControl, Select, MenuItem, InputLabel, Grid } from '@mui/material'; // Import Material-UI IconButton
 import DeleteIcon from '@mui/icons-material/Delete'; // Import Material-UI Delete Icon
 import CheckCircleIcon from '@mui/icons-material/CheckCircle'; // Checkmark icon for "Yes"
 
 const Menu = () => {
   const [canteenName, setCanteenName] = useState('');
   const [foodItems, setFoodItems] = useState([]);
+  const [allFoodItems, setAllFoodItems] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [selectedCategory, setSelectedCategory] = useState('all');
   const [openDialog, setOpenDialog] = useState(false); // Add this line
   const [selectedFoodId, setSelectedFoodId] = useState(null); // Add this line
 
@@ -22,12 +25,17 @@ const Menu = () => {
   useEffect(() => {
     const fetchFoodItems = async () => {
       try {
-  const response = await axios.get(`${config.api_base_urls.admin}/api/foods`);
+        const response = await axios.get(`${config.api_base_urls.admin}/api/foods`);
         const foodsData = response.data;
 
         // Filter food items by canteen name
         const filteredFoods = foodsData.filter((food) => food.canteen === canteenName);
+        setAllFoodItems(filteredFoods);
         setFoodItems(filteredFoods);
+        
+        // Extract unique categories
+        const uniqueCategories = [...new Set(filteredFoods.map(food => food.category))];
+        setCategories(uniqueCategories);
       } catch (error) {
         console.error('Error fetching food items:', error);
       }
@@ -37,6 +45,16 @@ const Menu = () => {
       fetchFoodItems();
     }
   }, [canteenName]);
+
+  // Filter food items by category
+  useEffect(() => {
+    if (selectedCategory === 'all') {
+      setFoodItems(allFoodItems);
+    } else {
+      const filtered = allFoodItems.filter(food => food.category === selectedCategory);
+      setFoodItems(filtered);
+    }
+  }, [selectedCategory, allFoodItems]);
 
   // Handle delete food item
   const handleDelete = async () => {
@@ -74,6 +92,28 @@ const Menu = () => {
   return (
     <div className="menu-details">
       <h2>Food Items</h2>
+      
+      {/* Category Filter */}
+      <Grid container spacing={2} sx={{ mb: 3 }}>
+        <Grid item xs={12} md={4}>
+          <FormControl fullWidth>
+            <InputLabel>Category</InputLabel>
+            <Select
+              value={selectedCategory}
+              label="Category"
+              onChange={(e) => setSelectedCategory(e.target.value)}
+            >
+              <MenuItem value="all">All Categories</MenuItem>
+              {categories.map((category) => (
+                <MenuItem key={category} value={category}>
+                  {category}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        </Grid>
+      </Grid>
+
       <table className="food-table">
         <thead>
           <tr>

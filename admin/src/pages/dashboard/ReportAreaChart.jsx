@@ -26,20 +26,7 @@ const areaChartOptions = {
     strokeDashArray: 4
   },
   xaxis: {
-    type: 'datetime',
-    categories: [
-      '2018-05-19T00:00:00.000Z',
-      '2018-06-19T00:00:00.000Z',
-      '2018-07-19T01:30:00.000Z',
-      '2018-08-19T02:30:00.000Z',
-      '2018-09-19T03:30:00.000Z',
-      '2018-10-19T04:30:00.000Z',
-      '2018-11-19T05:30:00.000Z',
-      '2018-12-19T06:30:00.000Z'
-    ],
-    labels: {
-      format: 'MMM'
-    },
+    categories: ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'],
     axisBorder: {
       show: false
     },
@@ -59,22 +46,42 @@ const areaChartOptions = {
 
 // ==============================|| REPORT AREA CHART ||============================== //
 
-export default function ReportAreaChart() {
+export default function ReportAreaChart({ data = [] }) {
   const theme = useTheme();
 
   const { primary, secondary } = theme.palette.text;
   const line = theme.palette.divider;
 
   const [options, setOptions] = useState(areaChartOptions);
+  const [series, setSeries] = useState([
+    {
+      name: 'Customer Activity',
+      data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    }
+  ]);
+
+  useEffect(() => {
+    if (data && data.length > 0) {
+      const customerData = data.map(item => item.customers || 0);
+      
+      setSeries([
+        {
+          name: 'Customer Activity',
+          data: customerData
+        }
+      ]);
+    }
+  }, [data]);
 
   useEffect(() => {
     setOptions((prevState) => ({
       ...prevState,
-      colors: [theme.palette.warning.main],
+      colors: [theme.palette.primary.main],
       xaxis: {
+        ...prevState.xaxis,
         labels: {
           style: {
-            colors: [secondary, secondary, secondary, secondary, secondary, secondary, secondary, secondary]
+            colors: Array(12).fill(secondary)
           }
         }
       },
@@ -88,13 +95,6 @@ export default function ReportAreaChart() {
       }
     }));
   }, [primary, secondary, line, theme]);
-
-  const [series] = useState([
-    {
-      name: 'Series 1',
-      data: [58, 115, 28, 83, 63, 75, 35, 55]
-    }
-  ]);
 
   return <ReactApexChart options={options} series={series} type="line" height={340} />;
 }

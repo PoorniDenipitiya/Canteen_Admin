@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import config from '../../config/appConfig';
 import './ComplaintManagement.css';
+import { FormControl, Select, MenuItem, InputLabel, Grid } from '@mui/material';
 
 const ComplaintManagement = () => {
   // Handler for action change
@@ -33,10 +34,17 @@ const ComplaintManagement = () => {
   });
   const role = localStorage.getItem('userRole');
   const [complaints, setComplaints] = useState([]);
+  const [allComplaints, setAllComplaints] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [selectedComplaint, setSelectedComplaint] = useState(null);
   const [showModal, setShowModal] = useState(false);
+  
+  // Filter states
+  const [selectedComplaintType, setSelectedComplaintType] = useState('all');
+  const [selectedStatus, setSelectedStatus] = useState('all');
+  const [selectedCanteenName, setSelectedCanteenName] = useState('all');
+  const [selectedPaymentMode, setSelectedPaymentMode] = useState('all');
   const statusOptions = [
     'Pending',
     'On Investigation',
@@ -80,6 +88,7 @@ const ComplaintManagement = () => {
   axios.get(`${config.api_base_urls.user}/api/complaints/all`, { withCredentials: true })
         .then(response => {
           const data = Array.isArray(response.data) ? response.data : [];
+          setAllComplaints(data);
           setComplaints(data);
           // For MO, track complaints that ever had 'On MO Investigation' status
           if (role === 'Medical Officer') {
@@ -95,6 +104,29 @@ const ComplaintManagement = () => {
         .finally(() => setLoading(false));
     }
   }, [role]);
+
+  // Filter complaints by selected criteria
+  useEffect(() => {
+    let filtered = allComplaints;
+
+    if (selectedComplaintType !== 'all') {
+      filtered = filtered.filter(complaint => complaint.complaintType === selectedComplaintType);
+    }
+
+    if (selectedStatus !== 'all') {
+      filtered = filtered.filter(complaint => complaint.status === selectedStatus);
+    }
+
+    if (selectedCanteenName !== 'all') {
+      filtered = filtered.filter(complaint => complaint.canteenName === selectedCanteenName);
+    }
+
+    if (selectedPaymentMode !== 'all') {
+      filtered = filtered.filter(complaint => complaint.paymentMode === selectedPaymentMode);
+    }
+
+    setComplaints(filtered);
+  }, [selectedComplaintType, selectedStatus, selectedCanteenName, selectedPaymentMode, allComplaints]);
 
   const handleSeeMore = (complaint) => {
     setSelectedComplaint(complaint);
@@ -114,6 +146,78 @@ const ComplaintManagement = () => {
   return (
     <div>
       <h1>Complaints</h1>
+      
+             {/* Filters - Only show for Admin and Medical Officer roles */}
+       {(role === 'Admin' || role === 'Medical Officer') && (
+        <Grid container spacing={2} sx={{ mb: 3 }}>
+          <Grid item xs={12} md={3}>
+            <FormControl fullWidth>
+              <InputLabel>Complaint Type</InputLabel>
+              <Select
+                value={selectedComplaintType}
+                label="Complaint Type"
+                onChange={(e) => setSelectedComplaintType(e.target.value)}
+              >
+                <MenuItem value="all">All Types</MenuItem>
+                {[...new Set(allComplaints.map(complaint => complaint.complaintType))].map((type) => (
+                  <MenuItem key={type} value={type}>
+                    {type}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Grid>
+          <Grid item xs={12} md={3}>
+            <FormControl fullWidth>
+              <InputLabel>Status</InputLabel>
+              <Select
+                value={selectedStatus}
+                label="Status"
+                onChange={(e) => setSelectedStatus(e.target.value)}
+              >
+                <MenuItem value="all">All Statuses</MenuItem>
+                {statusOptions.map((status) => (
+                  <MenuItem key={status} value={status}>
+                    {status}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Grid>
+          <Grid item xs={12} md={3}>
+            <FormControl fullWidth>
+              <InputLabel>Canteen Name</InputLabel>
+              <Select
+                value={selectedCanteenName}
+                label="Canteen Name"
+                onChange={(e) => setSelectedCanteenName(e.target.value)}
+              >
+                <MenuItem value="all">All Canteens</MenuItem>
+                {[...new Set(allComplaints.map(complaint => complaint.canteenName))].map((canteen) => (
+                  <MenuItem key={canteen} value={canteen}>
+                    {canteen}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Grid>
+          <Grid item xs={12} md={3}>
+            <FormControl fullWidth>
+              <InputLabel>Payment Mode</InputLabel>
+              <Select
+                value={selectedPaymentMode}
+                label="Payment Mode"
+                onChange={(e) => setSelectedPaymentMode(e.target.value)}
+              >
+                <MenuItem value="all">All Payment Modes</MenuItem>
+                <MenuItem value="online">Online</MenuItem>
+                <MenuItem value="cash">Cash</MenuItem>
+              </Select>
+            </FormControl>
+          </Grid>
+        </Grid>
+      )}
+      
       {loading && <p>Loading...</p>}
       {error && <p style={{color: 'red'}}>{error}</p>}
       {!loading && !error && (

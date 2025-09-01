@@ -1,252 +1,489 @@
+// react
+import { useEffect, useState } from 'react';
+
 // material-ui
-import Avatar from '@mui/material/Avatar';
-import AvatarGroup from '@mui/material/AvatarGroup';
-import Button from '@mui/material/Button';
 import Grid from '@mui/material/Grid';
-import List from '@mui/material/List';
-import ListItemAvatar from '@mui/material/ListItemAvatar';
-import ListItemButton from '@mui/material/ListItemButton';
-import ListItemSecondaryAction from '@mui/material/ListItemSecondaryAction';
-import ListItemText from '@mui/material/ListItemText';
-import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
+import FormControl from '@mui/material/FormControl';
+import Select from '@mui/material/Select';
+import MenuItem from '@mui/material/MenuItem';
+import InputLabel from '@mui/material/InputLabel';
 
 // project import
 import MainCard from 'components/MainCard';
 import AnalyticEcommerce from 'components/cards/statistics/AnalyticEcommerce';
 import MonthlyBarChart from './MonthlyBarChart';
 import ReportAreaChart from './ReportAreaChart';
-import UniqueVisitorCard from './UniqueVisitorCard';
-import SaleReportCard from './SaleReportCard';
-import OrdersTable from './OrdersTable';
 
-// assets
-import GiftOutlined from '@ant-design/icons/GiftOutlined';
-import MessageOutlined from '@ant-design/icons/MessageOutlined';
-import SettingOutlined from '@ant-design/icons/SettingOutlined';
-import avatar1 from 'assets/images/users/avatar-1.png';
-import avatar2 from 'assets/images/users/avatar-2.png';
-import avatar3 from 'assets/images/users/avatar-3.png';
-import avatar4 from 'assets/images/users/avatar-4.png';
+// config
+import config from 'config/appConfig';
 
-// avatar style
-const avatarSX = {
-  width: 36,
-  height: 36,
-  fontSize: '1rem'
-};
+// Third-party for charts
+import ReactApexChart from 'react-apexcharts';
 
-// action style
-const actionSX = {
-  mt: 0.75,
-  ml: 1,
-  top: 'auto',
-  right: 'auto',
-  alignSelf: 'flex-start',
-  transform: 'none'
-};
-
-// ==============================|| DASHBOARD - DEFAULT ||============================== //
+// ==============================|| DASHBOARD - CANTEEN OWNER ||============================== //
 
 export default function DashboardDefault() {
+  const [dashboardData, setDashboardData] = useState({
+    customers: { total: 0 },
+    orders: { total: 0 },
+    refundOrders: 0,
+    finedOrders: 0,
+    complaints: 0,
+    salesHistory: [],
+    customerActivity: []
+  });
+  const [adminData, setAdminData] = useState({
+    complaintsByCanteen: [],
+    complaintTypes: [],
+    actions: [],
+    categories: [],
+    foods: [],
+    canteenNames: []
+  });
+  const [medicalOfficerData, setMedicalOfficerData] = useState({
+    actions: [],
+    complaintsByCanteen: []
+  });
+  const [loading, setLoading] = useState(true);
+
+  const canteenName = localStorage.getItem('canteenName') || '';
+  const userRole = localStorage.getItem('userRole') || '';
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const baseUrl = config.api_base_urls.admin;
+        const userBaseUrl = config.api_base_urls.user;
+
+        if (userRole === 'Canteen Owner') {
+          if (!canteenName) {
+            setLoading(false);
+            return;
+          }
+
+          const dashRes = await fetch(`${baseUrl}/api/admin/orders/dashboard/${encodeURIComponent(canteenName)}`);
+          if (!dashRes.ok) throw new Error(`Dashboard API error: ${dashRes.status}`);
+          const dashJson = await dashRes.json();
+
+          const compRes = await fetch(`${baseUrl}/api/complaints/canteen/${encodeURIComponent(canteenName)}`);
+          if (!compRes.ok) throw new Error(`Complaints API error: ${compRes.status}`);
+          const complaints = await compRes.json();
+
+          const processed = processCanteenData(dashJson, complaints);
+          setDashboardData(processed);
+
+        } else if (userRole === 'Admin') {
+          // Fetch all complaints, categories and foods for admin
+          const complaintsRes = await fetch(`${userBaseUrl}/api/complaints/all`, { withCredentials: true });
+          if (!complaintsRes.ok) throw new Error('Failed to fetch complaints');
+          const allComplaints = await complaintsRes.json();
+
+          const categoriesRes = await fetch(`${baseUrl}/api/categories`);
+          if (!categoriesRes.ok) throw new Error('Failed to fetch categories');
+          const categories = await categoriesRes.json();
+
+          const foodsRes = await fetch(`${baseUrl}/api/foods`);
+          if (!foodsRes.ok) throw new Error('Failed to fetch foods');
+          const foods = await foodsRes.json();
+
+          const processed = processAdminData(allComplaints, categories, foods);
+          setAdminData(processed);
+
+        } else if (userRole === 'Medical Officer') {
+          // Fetch complaints for medical officer
+          const complaintsRes = await fetch(`${userBaseUrl}/api/complaints/all`, { withCredentials: true });
+          if (!complaintsRes.ok) throw new Error('Failed to fetch complaints');
+          const allComplaints = await complaintsRes.json();
+
+          const processed = processMedicalOfficerData(allComplaints);
+          setMedicalOfficerData(processed);
+        }
+      } catch (e) {
+        // eslint-disable-next-line no-console
+        console.error('Dashboard load error', e);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, [canteenName, userRole]);
+
+  const processCanteenData = (dash, complaints) => {
+    const totalCustomers = dash.totalCustomers || 0;
+    const salesHistory = (dash.monthlyData || []).map((m) => ({ name: m.month, sales: m.sales }));
+    const customerActivity = (dash.monthlyData || []).map((m) => ({ name: m.month, customers: m.customers }));
+    const refundOrders = complaints.filter(
+      (c) => c.action === 'Refund' && ['MO Investigation Completed', 'Investigation Completed', 'Complaint Closed'].includes(c.status)
+    ).length;
+
+    return {
+      customers: { total: totalCustomers },
+      orders: { total: dash.totalOrders || 0 },
+      refundOrders,
+      finedOrders: dash.finedOrders || 0,
+      complaints: complaints.length || 0,
+      salesHistory,
+      customerActivity
+    };
+  };
+
+  const processAdminData = (complaints, categories, foods) => {
+    // Complaints by canteen
+    const complaintsByCanteen = {};
+    complaints.forEach(complaint => {
+      complaintsByCanteen[complaint.canteenName] = (complaintsByCanteen[complaint.canteenName] || 0) + 1;
+    });
+
+    // Complaint types
+    const complaintTypes = {};
+    complaints.forEach(complaint => {
+      complaintTypes[complaint.complaintType] = (complaintTypes[complaint.complaintType] || 0) + 1;
+    });
+
+    // Actions
+    const actions = { Refund: 0, Reject: 0, Pending: 0 };
+    complaints.forEach(complaint => {
+      if (complaint.action === 'Refund') actions.Refund++;
+      else if (complaint.action === 'Reject') actions.Reject++;
+      else actions.Pending++;
+    });
+
+    // Food items with canteen and categories list
+    const canteenNamesSet = new Set();
+    const foodRows = (foods || []).map(f => {
+      if (f.canteen) canteenNamesSet.add(f.canteen);
+      return { canteen: f.canteen || '-', category: f.category || '-', food: f.food || f.name || '-', price: f.price };
+    });
+
+    return {
+      complaintsByCanteen: Object.entries(complaintsByCanteen).map(([name, count]) => ({ name, count })),
+      complaintTypes: Object.entries(complaintTypes).map(([type, count]) => ({ type, count })),
+      actions: Object.entries(actions).map(([action, count]) => ({ action, count })),
+      categories: categories.map(c => ({ category: c.name || c.categoryName || '-' })),
+      foods: foodRows,
+      canteenNames: Array.from(canteenNamesSet)
+    };
+  };
+
+  const processMedicalOfficerData = (complaints) => {
+    // Filter complaints that were ever assigned to MO
+    const moComplaintIds = JSON.parse(localStorage.getItem('moComplaintIds') || '[]');
+    const moComplaints = complaints.filter(c => moComplaintIds.includes(c._id || c.id));
+
+    // Actions taken by MO
+    const actions = { Refund: 0, Reject: 0, Pending: 0 };
+    moComplaints.forEach(complaint => {
+      if (complaint.action === 'Refund') actions.Refund++;
+      else if (complaint.action === 'Reject') actions.Reject++;
+      else actions.Pending++;
+    });
+
+    // Complaints by canteen for MO
+    const complaintsByCanteen = {};
+    moComplaints.forEach(complaint => {
+      complaintsByCanteen[complaint.canteenName] = (complaintsByCanteen[complaint.canteenName] || 0) + 1;
+    });
+
+    return {
+      actions: Object.entries(actions).map(([action, count]) => ({ action, count })),
+      complaintsByCanteen: Object.entries(complaintsByCanteen).map(([name, count]) => ({ name, count }))
+    };
+  };
+
+  // Chart options for pie charts
+  const pieChartOptions = {
+    chart: {
+      type: 'pie',
+      height: 350
+    },
+    legend: {
+      position: 'bottom'
+    },
+    responsive: [{
+      breakpoint: 480,
+      options: {
+        chart: {
+          width: 200
+        }
+      }
+    }]
+  };
+
+  // Chart options for bar charts
+  const barChartOptions = {
+    chart: {
+      type: 'bar',
+      height: 350
+    },
+    plotOptions: {
+      bar: {
+        horizontal: false,
+        columnWidth: '55%',
+      }
+    },
+    dataLabels: {
+      enabled: false
+    },
+    xaxis: {
+      categories: []
+    }
+  };
+
+  if (loading) {
+    return (
+      <Grid container rowSpacing={4.5} columnSpacing={2.75}>
+        <Grid item xs={12} sx={{ mb: -2.25 }}>
+          <Typography variant="h5">Loading Dashboard...</Typography>
+        </Grid>
+      </Grid>
+    );
+  }
+
+  // Medical Officer Dashboard
+  if (userRole === 'Medical Officer') {
+    return (
+      <Grid container rowSpacing={4.5} columnSpacing={2.75}>
+        <Grid item xs={12} sx={{ mb: -2.25 }}>
+          <Typography variant="h5">Medical Officer Dashboard</Typography>
+        </Grid>
+
+        {/* Actions Pie Chart */}
+        <Grid item xs={12} md={6}>
+          <MainCard title="Actions Taken" content={false}>
+            <Box sx={{ p: 3 }}>
+              <ReactApexChart
+                options={{
+                  ...pieChartOptions,
+                  labels: medicalOfficerData.actions.map(item => item.action)
+                }}
+                series={medicalOfficerData.actions.map(item => item.count)}
+                type="pie"
+                height={350}
+              />
+            </Box>
+          </MainCard>
+        </Grid>
+
+        {/* Complaints by Canteen Bar Chart */}
+        <Grid item xs={12} md={6}>
+          <MainCard title="Complaints by Canteen" content={false}>
+            <Box sx={{ p: 3 }}>
+              <ReactApexChart
+                options={{
+                  ...barChartOptions,
+                  xaxis: {
+                    categories: medicalOfficerData.complaintsByCanteen.map(item => item.name)
+                  }
+                }}
+                series={[{
+                  name: 'Complaints',
+                  data: medicalOfficerData.complaintsByCanteen.map(item => item.count)
+                }]}
+                type="bar"
+                height={350}
+              />
+            </Box>
+          </MainCard>
+        </Grid>
+      </Grid>
+    );
+  }
+
+  // Admin Dashboard
+  if (userRole === 'Admin') {
+    return (
+      <Grid container rowSpacing={4.5} columnSpacing={2.75}>
+        <Grid item xs={12} sx={{ mb: -2.25 }}>
+          <Typography variant="h5">Admin Dashboard</Typography>
+        </Grid>
+
+        {/* Complaints by Canteen Pie Chart */}
+        <Grid item xs={12} md={6}>
+          <MainCard title="Complaints by Canteen" content={false}>
+            <Box sx={{ p: 3 }}>
+              <ReactApexChart
+                options={{
+                  ...pieChartOptions,
+                  labels: adminData.complaintsByCanteen.map(item => item.name)
+                }}
+                series={adminData.complaintsByCanteen.map(item => item.count)}
+                type="pie"
+                height={350}
+              />
+            </Box>
+          </MainCard>
+        </Grid>
+
+        {/* Actions Pie Chart */}
+        <Grid item xs={12} md={6}>
+          <MainCard title="Actions Overview" content={false}>
+            <Box sx={{ p: 3 }}>
+              <ReactApexChart
+                options={{
+                  ...pieChartOptions,
+                  labels: adminData.actions.map(item => item.action)
+                }}
+                series={adminData.actions.map(item => item.count)}
+                type="pie"
+                height={350}
+              />
+            </Box>
+          </MainCard>
+        </Grid>
+
+        {/* Complaint Types Bar Chart */}
+        <Grid item xs={12} md={6}>
+          <MainCard title="Complaint Types" content={false}>
+            <Box sx={{ p: 3 }}>
+              <ReactApexChart
+                options={{
+                  ...barChartOptions,
+                  xaxis: {
+                    categories: adminData.complaintTypes.map(item => item.type)
+                  }
+                }}
+                series={[{
+                  name: 'Count',
+                  data: adminData.complaintTypes.map(item => item.count)
+                }]}
+                type="bar"
+                height={350}
+              />
+            </Box>
+          </MainCard>
+        </Grid>
+
+        {/* Foods table with filter by canteen */}
+        <Grid item xs={12}>
+          <MainCard title="Foods by Canteen">
+            <Grid container spacing={2} sx={{ mb: 2 }}>
+              <Grid item xs={12} md={4}>
+                <FormControl fullWidth>
+                  <InputLabel>Canteen</InputLabel>
+                  <Select
+                    label="Canteen"
+                    value={adminData.selectedCanteen || 'all'}
+                    onChange={(e) => {
+                      const selected = e.target.value;
+                      setAdminData((prev) => ({ ...prev, selectedCanteen: selected }));
+                    }}
+                  >
+                    <MenuItem value="all">All Canteens</MenuItem>
+                    {adminData.canteenNames.map((name) => (
+                      <MenuItem key={name} value={name}>{name}</MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </Grid>
+            </Grid>
+
+            <Box sx={{ overflowX: 'auto' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                <thead>
+                  <tr>
+                    <th style={{ textAlign: 'left', padding: '8px', borderBottom: '1px solid #eee' }}>Canteen</th>
+                    <th style={{ textAlign: 'left', padding: '8px', borderBottom: '1px solid #eee' }}>Category</th>
+                    <th style={{ textAlign: 'left', padding: '8px', borderBottom: '1px solid #eee' }}>Food Item</th>
+                    <th style={{ textAlign: 'left', padding: '8px', borderBottom: '1px solid #eee' }}>Price (Rs.)</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {(adminData.foods || [])
+                    .filter(row => (adminData.selectedCanteen && adminData.selectedCanteen !== 'all') ? row.canteen === adminData.selectedCanteen : true)
+                    .map((row, idx) => (
+                      <tr key={`${row.canteen}-${row.food}-${idx}`}>
+                        <td style={{ padding: '8px', borderBottom: '1px solid #f5f5f5' }}>{row.canteen}</td>
+                        <td style={{ padding: '8px', borderBottom: '1px solid #f5f5f5' }}>{row.category}</td>
+                        <td style={{ padding: '8px', borderBottom: '1px solid #f5f5f5' }}>{row.food}</td>
+                        <td style={{ padding: '8px', borderBottom: '1px solid #f5f5f5' }}>{row.price}</td>
+                      </tr>
+                    ))}
+                </tbody>
+              </table>
+            </Box>
+          </MainCard>
+        </Grid>
+      </Grid>
+    );
+  }
+
+  // Canteen Owner Dashboard
+  if (userRole === 'Canteen Owner') {
+    if (!canteenName) {
+      return (
+        <Grid container rowSpacing={4.5} columnSpacing={2.75}>
+          <Grid item xs={12} sx={{ mb: -2.25 }}>
+            <Typography variant="h5">Dashboard</Typography>
+          </Grid>
+          <Grid item xs={12}>
+            <MainCard>
+              <Typography variant="h6" color="text.secondary" align="center">
+                No canteen information found. Please log in as a canteen owner.
+              </Typography>
+            </MainCard>
+          </Grid>
+        </Grid>
+      );
+    }
+
+    return (
+      <Grid container rowSpacing={4.5} columnSpacing={2.75}>
+        <Grid item xs={12} sx={{ mb: -2.25 }}>
+          <Typography variant="h5">Canteen Owner Dashboard</Typography>
+        </Grid>
+
+        {/* key metrics */}
+        <Grid item xs={12} sm={6} md={4} lg={2.4}>
+          <AnalyticEcommerce title="Customers" count={dashboardData.customers.total.toString()} color="primary" />
+        </Grid>
+        <Grid item xs={12} sm={6} md={4} lg={2.4}>
+          <AnalyticEcommerce title="Orders" count={dashboardData.orders.total.toString()} color="secondary" />
+        </Grid>
+        <Grid item xs={12} sm={6} md={4} lg={2.4}>
+          <AnalyticEcommerce title="Refund Orders" count={dashboardData.refundOrders.toString()} color="warning" />
+        </Grid>
+        <Grid item xs={12} sm={6} md={4} lg={2.4}>
+          <AnalyticEcommerce title="Fined Orders" count={dashboardData.finedOrders.toString()} color="error" />
+        </Grid>
+        <Grid item xs={12} sm={6} md={4} lg={2.4}>
+          <AnalyticEcommerce title="Complaints" count={dashboardData.complaints.toString()} color="info" />
+        </Grid>
+
+        {/* charts */}
+        <Grid item xs={12} md={6}>
+          <MainCard title="Sales History" content={false}>
+            <Box sx={{ p: 3 }}>
+              <MonthlyBarChart data={dashboardData.salesHistory} />
+            </Box>
+          </MainCard>
+        </Grid>
+        <Grid item xs={12} md={6}>
+          <MainCard title="Overall Customers Activity" content={false}>
+            <Box sx={{ p: 3 }}>
+              <ReportAreaChart data={dashboardData.customerActivity} />
+            </Box>
+          </MainCard>
+        </Grid>
+      </Grid>
+    );
+  }
+
+  // Default fallback
   return (
     <Grid container rowSpacing={4.5} columnSpacing={2.75}>
-      {/* row 1 */}
       <Grid item xs={12} sx={{ mb: -2.25 }}>
         <Typography variant="h5">Dashboard</Typography>
       </Grid>
-    {/*  <Grid item xs={12} sm={6} md={4} lg={3}>
-        <AnalyticEcommerce title="Total Page Views" count="4,42,236" percentage={59.3} extra="35,000" />
-      </Grid>
-      <Grid item xs={12} sm={6} md={4} lg={3}>
-        <AnalyticEcommerce title="Total Users" count="78,250" percentage={70.5} extra="8,900" />
-      </Grid>
-      <Grid item xs={12} sm={6} md={4} lg={3}>
-        <AnalyticEcommerce title="Total Order" count="18,800" percentage={27.4} isLoss color="warning" extra="1,943" />
-      </Grid>
-      <Grid item xs={12} sm={6} md={4} lg={3}>
-        <AnalyticEcommerce title="Total Sales" count="$35,078" percentage={27.4} isLoss color="warning" extra="$20,395" />
-      </Grid>
-*/}
-      <Grid item md={8} sx={{ display: { sm: 'none', md: 'block', lg: 'none' } }} />
-
-      {/* row 2 */}
-   {/*   <Grid item xs={12} md={7} lg={8}>
-        <UniqueVisitorCard />
-      </Grid>
-      <Grid item xs={12} md={5} lg={4}>
-        <Grid container alignItems="center" justifyContent="space-between">
-          <Grid item>
-            <Typography variant="h5">Income Overview</Typography>
-          </Grid>
-          <Grid item />
-        </Grid>
-        <MainCard sx={{ mt: 2 }} content={false}>
-          <Box sx={{ p: 3, pb: 0 }}>
-            <Stack spacing={2}>
-              <Typography variant="h6" color="text.secondary">
-                This Week Statistics
-              </Typography>
-              <Typography variant="h3">$7,650</Typography>
-            </Stack>
-          </Box>
-          <MonthlyBarChart />
+      <Grid item xs={12}>
+        <MainCard>
+          <Typography variant="h6" color="text.secondary" align="center">
+            Please log in to view your dashboard.
+          </Typography>
         </MainCard>
       </Grid>
-
-      */}
-
-      {/* row 3 */}
-      {/*
-      <Grid item xs={12} md={7} lg={8}>
-        <Grid container alignItems="center" justifyContent="space-between">
-          <Grid item>
-            <Typography variant="h5">Recent Orders</Typography>
-          </Grid>
-          <Grid item />
-        </Grid>
-        <MainCard sx={{ mt: 2 }} content={false}>
-          <OrdersTable />
-        </MainCard>
-      </Grid>
-      <Grid item xs={12} md={5} lg={4}>
-        <Grid container alignItems="center" justifyContent="space-between">
-          <Grid item>
-            <Typography variant="h5">Analytics Report</Typography>
-          </Grid>
-          <Grid item />
-        </Grid>
-        <MainCard sx={{ mt: 2 }} content={false}>
-          <List sx={{ p: 0, '& .MuiListItemButton-root': { py: 2 } }}>
-            <ListItemButton divider>
-              <ListItemText primary="Company Finance Growth" />
-              <Typography variant="h5">+45.14%</Typography>
-            </ListItemButton>
-            <ListItemButton divider>
-              <ListItemText primary="Company Expenses Ratio" />
-              <Typography variant="h5">0.58%</Typography>
-            </ListItemButton>
-            <ListItemButton>
-              <ListItemText primary="Business Risk Cases" />
-              <Typography variant="h5">Low</Typography>
-            </ListItemButton>
-          </List>
-          <ReportAreaChart />
-        </MainCard>
-      </Grid>
-*/}
-      {/* row 4 */}
-   {/*   <Grid item xs={12} md={7} lg={8}>
-        <SaleReportCard />
-      </Grid>
-      <Grid item xs={12} md={5} lg={4}>
-        <Grid container alignItems="center" justifyContent="space-between">
-          <Grid item>
-            <Typography variant="h5">Transaction History</Typography>
-          </Grid>
-          <Grid item />
-        </Grid>
-        <MainCard sx={{ mt: 2 }} content={false}>
-          <List
-            component="nav"
-            sx={{
-              px: 0,
-              py: 0,
-              '& .MuiListItemButton-root': {
-                py: 1.5,
-                '& .MuiAvatar-root': avatarSX,
-                '& .MuiListItemSecondaryAction-root': { ...actionSX, position: 'relative' }
-              }
-            }}
-          >
-            <ListItemButton divider>
-              <ListItemAvatar>
-                <Avatar sx={{ color: 'success.main', bgcolor: 'success.lighter' }}>
-                  <GiftOutlined />
-                </Avatar>
-              </ListItemAvatar>
-              <ListItemText primary={<Typography variant="subtitle1">Order #002434</Typography>} secondary="Today, 2:00 AM" />
-              <ListItemSecondaryAction>
-                <Stack alignItems="flex-end">
-                  <Typography variant="subtitle1" noWrap>
-                    + $1,430
-                  </Typography>
-                  <Typography variant="h6" color="secondary" noWrap>
-                    78%
-                  </Typography>
-                </Stack>
-              </ListItemSecondaryAction>
-            </ListItemButton>
-            <ListItemButton divider>
-              <ListItemAvatar>
-                <Avatar sx={{ color: 'primary.main', bgcolor: 'primary.lighter' }}>
-                  <MessageOutlined />
-                </Avatar>
-              </ListItemAvatar>
-              <ListItemText primary={<Typography variant="subtitle1">Order #984947</Typography>} secondary="5 August, 1:45 PM" />
-              <ListItemSecondaryAction>
-                <Stack alignItems="flex-end">
-                  <Typography variant="subtitle1" noWrap>
-                    + $302
-                  </Typography>
-                  <Typography variant="h6" color="secondary" noWrap>
-                    8%
-                  </Typography>
-                </Stack>
-              </ListItemSecondaryAction>
-            </ListItemButton>
-            <ListItemButton>
-              <ListItemAvatar>
-                <Avatar sx={{ color: 'error.main', bgcolor: 'error.lighter' }}>
-                  <SettingOutlined />
-                </Avatar>
-              </ListItemAvatar>
-              <ListItemText primary={<Typography variant="subtitle1">Order #988784</Typography>} secondary="7 hours ago" />
-              <ListItemSecondaryAction>
-                <Stack alignItems="flex-end">
-                  <Typography variant="subtitle1" noWrap>
-                    + $682
-                  </Typography>
-                  <Typography variant="h6" color="secondary" noWrap>
-                    16%
-                  </Typography>
-                </Stack>
-              </ListItemSecondaryAction>
-            </ListItemButton>
-          </List>
-        </MainCard>
-        <MainCard sx={{ mt: 2 }}>
-          <Stack spacing={3}>
-            <Grid container justifyContent="space-between" alignItems="center">
-              <Grid item>
-                <Stack>
-                  <Typography variant="h5" noWrap>
-                    Help & Support Chat
-                  </Typography>
-                  <Typography variant="caption" color="secondary" noWrap>
-                    Typical replay within 5 min
-                  </Typography>
-                </Stack>
-              </Grid>
-              <Grid item>
-                <AvatarGroup sx={{ '& .MuiAvatar-root': { width: 32, height: 32 } }}>
-                  <Avatar alt="Remy Sharp" src={avatar1} />
-                  <Avatar alt="Travis Howard" src={avatar2} />
-                  <Avatar alt="Cindy Baker" src={avatar3} />
-                  <Avatar alt="Agnes Walker" src={avatar4} />
-                </AvatarGroup>
-              </Grid>
-            </Grid>
-            <Button size="small" variant="contained" sx={{ textTransform: 'capitalize' }}>
-              Need Help?
-            </Button>
-          </Stack>
-        </MainCard>
-      </Grid>
-  */}
     </Grid>
-   
   );
 }
 
