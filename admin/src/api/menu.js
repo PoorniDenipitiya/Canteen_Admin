@@ -1,24 +1,18 @@
+//Central menu mgt system with global state mgt
 import useSWR, { mutate } from 'swr';
 import { useMemo } from 'react';
-
 import dashboard from 'menu-items/dashboard';
 import pages from 'menu-items/page';
-import utilities from 'menu-items/utilities'; 
-import support from 'menu-items/support';
-
+import utilities from 'menu-items/utilities';
 
 const initialState = {
   openedItem: 'dashboard',
-  openedComponent: 'buttons',
-  openedHorizontalItem: null,
-  isDashboardDrawerOpened: false,
-  isComponentDrawerOpened: true
+  isDashboardDrawerOpened: false
 };
 
 export const endpoints = {
   key: 'api/menu',
-  master: 'master',
-  dashboard: '/dashboard' // server URL
+  master: 'master'
 };
 
 export function useGetMenuMaster() {
@@ -40,8 +34,6 @@ export function useGetMenuMaster() {
 }
 
 export function handlerDrawerOpen(isDashboardDrawerOpened) {
-  // to update local state based on key
-
   mutate(
     endpoints.key + endpoints.master,
     (currentMenuMaster) => {
@@ -52,8 +44,6 @@ export function handlerDrawerOpen(isDashboardDrawerOpened) {
 }
 
 export function handlerActiveItem(openedItem) {
-  // to update local state based on key
-
   mutate(
     endpoints.key + endpoints.master,
     (currentMenuMaster) => {
@@ -63,16 +53,7 @@ export function handlerActiveItem(openedItem) {
   );
 }
 
-
-//customize side navigation bar based on the user role
 export function getMenuItemsByRole(role) {
-  const allItems = [
-    dashboard,
-    pages,
-    utilities,
-    support
-  ];
-
   switch (role) {
     case 'Admin':
       return [
@@ -80,29 +61,15 @@ export function getMenuItemsByRole(role) {
         pages,
         {
           ...utilities,
-          children: utilities.children.filter(item => !['paymentManagement', 'orderManagement'].includes(item.id))
+          children: utilities.children.filter((item) => !['paymentManagement', 'orderManagement'].includes(item.id))
         }
       ];
-    /*case 'Medical Officer':
-      return [
-        dashboard,
-        utilities.children.find(item => item.id === 'complaintManagement'),
-        support.children.find(item => item.id === 'reports')
-      ].filter(Boolean); // Filter out undefined items
-    case 'Canteen Owner':
-      return [
-        dashboard,
-        utilities.children.find(item => item.id === 'referenceManagement'),
-        utilities.children.find(item => item.id === 'orderManagement'),
-        utilities.children.find(item => item.id === 'paymentManagement'),
-        support.children.find(item => item.id === 'reports')
-      ].filter(Boolean); // Filter out undefined items*/
-      case 'Medical Officer':
+    case 'Medical Officer':
       return [
         dashboard,
         {
           ...utilities,
-          children: utilities.children.filter(item => item.id === 'complaintManagement')
+          children: utilities.children.filter((item) => item.id === 'complaintManagement')
         }
       ];
     case 'Canteen Owner':
@@ -110,10 +77,10 @@ export function getMenuItemsByRole(role) {
         dashboard,
         {
           ...utilities,
-          children: utilities.children.filter(item => ['referenceManagement', 'orderManagement'].includes(item.id))
+          children: utilities.children.filter((item) => ['referenceManagement', 'orderManagement'].includes(item.id))
         }
       ];
-      default:
+    default:
       return [];
   }
 }

@@ -1,11 +1,8 @@
 import PropTypes from 'prop-types';
 import React from 'react';
-import { Link as RouterLink, useNavigate} from 'react-router-dom';
-
-// material-ui
+import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import Button from '@mui/material/Button';
 import Checkbox from '@mui/material/Checkbox';
-import Divider from '@mui/material/Divider';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import FormHelperText from '@mui/material/FormHelperText';
 import Grid from '@mui/material/Grid';
@@ -16,22 +13,13 @@ import InputLabel from '@mui/material/InputLabel';
 import OutlinedInput from '@mui/material/OutlinedInput';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
-
-// third party
 import * as Yup from 'yup';
 import { Formik } from 'formik';
 import axios from 'axios';
 import config from '../../../config/appConfig';
-
-// project import
 import AnimateButton from 'components/@extended/AnimateButton';
-
-// assets
 import EyeOutlined from '@ant-design/icons/EyeOutlined';
 import EyeInvisibleOutlined from '@ant-design/icons/EyeInvisibleOutlined';
-import FirebaseSocial from './FirebaseSocial';
-
-// ============================|| JWT - LOGIN ||============================ //
 
 export default function AuthLogin({ isDemo = false }) {
   const [checked, setChecked] = React.useState(false);
@@ -48,29 +36,25 @@ export default function AuthLogin({ isDemo = false }) {
 
   const handleSubmit = async (values, { setErrors, setStatus, setSubmitting }) => {
     try {
-  const response = await axios.post(`${config.api_base_urls.admin}/api/login`, values);
-  
-      // Log the response to debug
+      const response = await axios.post(`${config.api_base_urls.admin}/api/login`, values);
       console.log('Backend response:', response.data);
-  
+
       if (response.data.success) {
-        // Ensure the username field is correctly accessed
         if (response.data.username) {
-          localStorage.setItem('userName', response.data.username); // Store the username in local storage
+          localStorage.setItem('userName', response.data.username);
         } else {
           console.error('Username is missing in the response');
         }
-  
-        localStorage.setItem('userRole', response.data.role); // Store the role in local storage
-        
-        // Store the canteenName if it exists
-      if (response.data.canteenName) {
-        localStorage.setItem('canteenName', response.data.canteenName);
-      } else {
-        localStorage.removeItem('canteenName'); // Clear canteenName if not provided
-      }
 
-        navigate('/'); // Navigate to the home page
+        localStorage.setItem('userRole', response.data.role);
+
+        if (response.data.canteenName) {
+          localStorage.setItem('canteenName', response.data.canteenName);
+        } else {
+          localStorage.removeItem('canteenName');
+        }
+
+        navigate('/');
         console.log(response.data.message);
       } else {
         setErrors({ submit: response.data.message });
@@ -102,27 +86,27 @@ export default function AuthLogin({ isDemo = false }) {
         {({ errors, handleBlur, handleChange, handleSubmit, isSubmitting, touched, values }) => (
           <form noValidate onSubmit={handleSubmit}>
             <Grid container spacing={3}>
-            <Grid item xs={12}>
-          <Stack spacing={1}>
-            <InputLabel htmlFor="username-login">Username</InputLabel>
-            <OutlinedInput
-              id="username-login"
-              type="text"
-              value={values.username}
-              name="username"
-              onBlur={handleBlur}
-              onChange={handleChange}
-              placeholder="Enter username"
-              fullWidth
-              error={Boolean(touched.username && errors.username)}
-            />
-          </Stack>
-          {touched.username && errors.username && (
-            <FormHelperText error id="standard-weight-helper-text-username-login">
-              {errors.username}
-            </FormHelperText>
-          )}
-        </Grid>
+              <Grid item xs={12}>
+                <Stack spacing={1}>
+                  <InputLabel htmlFor="username-login">Username</InputLabel>
+                  <OutlinedInput
+                    id="username-login"
+                    type="text"
+                    value={values.username}
+                    name="username"
+                    onBlur={handleBlur}
+                    onChange={handleChange}
+                    placeholder="Enter username"
+                    fullWidth
+                    error={Boolean(touched.username && errors.username)}
+                  />
+                </Stack>
+                {touched.username && errors.username && (
+                  <FormHelperText error id="standard-weight-helper-text-username-login">
+                    {errors.username}
+                  </FormHelperText>
+                )}
+              </Grid>
 
               <Grid item xs={12}>
                 <Stack spacing={1}>
@@ -211,14 +195,6 @@ export default function AuthLogin({ isDemo = false }) {
                   </Button>
                 </AnimateButton>
               </Grid>
-        { /*     <Grid item xs={12}>
-                <Divider>
-                  <Typography variant="caption"> Login with</Typography>
-                </Divider>
-              </Grid>
-              <Grid item xs={12}>
-                <FirebaseSocial />
-              </Grid> */}
             </Grid>
           </form>
         )}

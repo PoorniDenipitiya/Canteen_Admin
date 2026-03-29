@@ -10,12 +10,11 @@ const NotificationBell = ({ ownerId }) => {
   // Poll notifications every 10 seconds
   useEffect(() => {
     const fetchNotifications = () => {
-      axios.get('/api/notifications')
-        .then(res => {
-          const notifs = Array.isArray(res.data) ? res.data : [];
-          setNotifications(notifs);
-          setCount(notifs.filter(n => !n.isRead).length);
-        });
+      axios.get('/api/notifications').then((res) => {
+        const notifs = Array.isArray(res.data) ? res.data : [];
+        setNotifications(notifs);
+        setCount(notifs.filter((n) => !n.isRead).length);
+      });
     };
     fetchNotifications();
     const interval = setInterval(fetchNotifications, 10000);
@@ -25,10 +24,8 @@ const NotificationBell = ({ ownerId }) => {
   const handleNotificationClick = async (orderId, notifId) => {
     // Mark as read in backend
     await axios.patch(`/api/notifications/${notifId}/read`);
-    setNotifications(prev =>
-      prev.map(n => n._id === notifId ? { ...n, isRead: true } : n)
-    );
-    setCount(prev => prev - 1);
+    setNotifications((prev) => prev.map((n) => (n._id === notifId ? { ...n, isRead: true } : n)));
+    setCount((prev) => prev - 1);
     navigate('/order');
   };
 
@@ -38,12 +35,16 @@ const NotificationBell = ({ ownerId }) => {
         Notifications <span>{count}</span>
       </button>
       <ul>
-        {Array.isArray(notifications) && notifications.map(n => (
-          <li key={n._id} style={{ fontWeight: n.isRead ? 'normal' : 'bold', cursor: 'pointer' }}
-              onClick={() => handleNotificationClick(n.orderId, n._id)}>
-            {n.message}
-          </li>
-        ))}
+        {Array.isArray(notifications) &&
+          notifications.map((n) => (
+            <li
+              key={n._id}
+              style={{ fontWeight: n.isRead ? 'normal' : 'bold', cursor: 'pointer' }}
+              onClick={() => handleNotificationClick(n.orderId, n._id)}
+            >
+              {n.message}
+            </li>
+          ))}
       </ul>
     </div>
   );

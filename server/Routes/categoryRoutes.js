@@ -9,7 +9,6 @@ const upload = multer({ storage });
 
 router.post("/register", upload.single("image"), registerCategory);
 
-// Fetch all categories
 router.get("/", async (req, res) => {
     try {
       const categories = await Category.find();
@@ -21,3 +20,4 @@ router.get("/", async (req, res) => {
   });
 
 module.exports = router;
+

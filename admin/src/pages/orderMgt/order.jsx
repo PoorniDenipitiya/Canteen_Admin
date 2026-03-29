@@ -16,13 +16,11 @@ const Order = () => {
   const [selectedMonth, setSelectedMonth] = useState('');
   const [selectedYear, setSelectedYear] = useState('');
 
-  // ✅ Load canteen name once
   useEffect(() => {
     const storedCanteenName = localStorage.getItem("canteenName") || "";
     setCanteenName(storedCanteenName);
   }, []);
 
-  // ✅ Fetch orders ONLY when canteenName is ready
   useEffect(() => {
     if (!canteenName) return;
 
@@ -31,18 +29,19 @@ const Order = () => {
       .then((res) => {
         console.log("API response:", res.data);
         if (Array.isArray(res.data)) {
-          setAllOrders(res.data);
-          setOrders(res.data);
+          // Sort orders by latest date first
+          const sortedOrders = res.data.sort((a, b) => new Date(b.orderedDate) - new Date(a.orderedDate));
+          setAllOrders(sortedOrders);
+          setOrders(sortedOrders);
         } else {
           console.error("API did not return an array:", res.data);
-          setAllOrders([]); // fallback to empty array to avoid map() error
+          setAllOrders([]); 
           setOrders([]);
         }
       })
       .catch((err) => console.error(err));
   }, [canteenName]);
 
-  // Filter orders by status, payment mode, and time
   useEffect(() => {
     let filtered = allOrders;
 
@@ -54,7 +53,6 @@ const Order = () => {
       filtered = filtered.filter(order => order.paymentMode === selectedPaymentMode);
     }
 
-    // Time filtering
     if (selectedTimeFilter === 'month' && selectedMonth) {
       filtered = filtered.filter(order => {
         const orderDate = new Date(order.orderedDate);
@@ -69,25 +67,18 @@ const Order = () => {
       });
     }
 
+    // Ensure filtered results maintain date sorting (latest first)
+    filtered = filtered.sort((a, b) => new Date(b.orderedDate) - new Date(a.orderedDate));
+
     setOrders(filtered);
   }, [selectedStatus, selectedPaymentMode, selectedTimeFilter, selectedMonth, selectedYear, allOrders]);
 
-  /*const handleStatusChange = (orderId, newStatus) => {
-    setOrders((prev) =>
-      prev.map((order) =>
-        order.orderId === orderId ? { ...order, status: newStatus } : order
-      )
-    );
-  };*/
-
   const handleStatusChange = async (orderId, newStatus) => {
   try {
-    // Update status in backend (Admin API runs on port 5000!)
   await axios.patch(`${config.api_base_urls.admin}/api/admin/orders/${orderId}/status`, {
       status: newStatus,
     });
 
-    // Update local UI state too
     setOrders((prev) =>
       prev.map((order) =>
         order.orderId === orderId ? { ...order, status: newStatus } : order
@@ -104,7 +95,6 @@ const Order = () => {
     <div className="order-container">
       <h1>Orders for {canteenName}</h1>
       
-      {/* Filters */}
       <Grid container spacing={2} sx={{ mb: 3 }}>
         <Grid item xs={12} md={3}>
           <FormControl fullWidth>

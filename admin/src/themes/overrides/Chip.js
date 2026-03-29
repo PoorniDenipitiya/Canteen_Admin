@@ -1,7 +1,4 @@
-// project import
 import getColors from 'utils/getColors';
-
-// ==============================|| CHIP - COLORS ||============================== //
 
 function getColor({ color, theme }) {
   const colors = getColors(theme, color);
@@ -31,8 +28,6 @@ function getColorStyle({ color, theme }) {
     }
   };
 }
-
-// ==============================|| OVERRIDES - CHIP ||============================== //
 
 export default function Chip(theme) {
   const defaultLightChip = getColorStyle({ color: 'secondary', theme });

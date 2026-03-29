@@ -1,24 +1,14 @@
 import { lazy } from 'react';
-
-// project import
 import Loadable from 'components/Loadable';
 import Dashboard from 'layout/Dashboard';
 import ReferenceMgt from 'pages/referenceMgt/reference';
 
-const Color = Loadable(lazy(() => import('pages/component-overview/color')));
-const Typography = Loadable(lazy(() => import('pages/component-overview/typography')));
-const Shadow = Loadable(lazy(() => import('pages/component-overview/shadows')));
 const DashboardDefault = Loadable(lazy(() => import('pages/dashboard/index')));
-
-// render - sample page
-const SamplePage = Loadable(lazy(() => import('pages/extra-pages/sample-page')));
 
 import OrderManagement from 'pages/orderMgt/index';
 import Menu from 'pages/orderMgt/menu'; 
 import Order from 'pages/orderMgt/order';
 import ComplaintManagement from 'pages/complaintMgt/ComplaintManagement';
-
-// ==============================|| MAIN ROUTING ||============================== //
 
 const MainRoutes = {
   path: '/',
@@ -27,10 +17,6 @@ const MainRoutes = {
     {
       path: '/',
       element: <DashboardDefault />
-    },
-    {
-      path: 'color',
-      element: <Color />
     },
     {
       path: 'dashboard',
@@ -42,18 +28,6 @@ const MainRoutes = {
       ]
     },
     {
-      path: 'sample-page',
-      element: <SamplePage />
-    },
-    {
-      path: 'shadow',
-      element: <Shadow />
-    },
-    {
-      path: 'typography',
-      element: <Typography />
-    },
-    {
       path: 'reference-management',
       element: <ReferenceMgt />
     },
@@ -62,11 +36,11 @@ const MainRoutes = {
       element: <OrderManagement />
     },
     {
-      path: 'menu', // Define the menu route as a standalone route
+      path: 'menu',
       element: <Menu />
     },
     {
-      path: 'order', // Define the order route as a standalone route
+      path: 'order', 
       element: <Order />
     },
     {

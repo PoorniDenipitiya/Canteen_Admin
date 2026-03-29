@@ -47,7 +47,6 @@ const ReferenceMgt = () => {
     setMessage('');
 
     try {
-      // Validate inputs
       if (formType === 'category') {
         if (!formData.category || !formData.description) {
           setMessage('Please fill all required fields');
@@ -74,7 +73,6 @@ const ReferenceMgt = () => {
           image: selectedImage.name
         });
 
-        // Send data to the backend
   const response = await axios.post(`${config.api_base_urls.admin}/api/category/register`, formDataToSend, {
           headers: {
             'Content-Type': 'multipart/form-data'
@@ -84,7 +82,6 @@ const ReferenceMgt = () => {
         console.log('Response from server:', response.data);
 
         if (response.data.success) {
-          // Reset form
           setFormData({
             category: '',
             description: ''
@@ -132,7 +129,6 @@ const ReferenceMgt = () => {
           image: selectedImage.name
         });
 
-        // Send data to the backend
   const response = await axios.post(`${config.api_base_urls.admin}/api/food/register`, formDataToSend, {
           headers: {
             'Content-Type': 'multipart/form-data'
@@ -142,7 +138,6 @@ const ReferenceMgt = () => {
         console.log('Response from server:', response.data);
 
         if (response.data.success) {
-          // Reset form
           setFoodData({
             canteen: '',
             category: '',

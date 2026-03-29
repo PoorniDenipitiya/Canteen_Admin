@@ -1,9 +1,8 @@
+//order status indicators
 import PropTypes from 'prop-types';
-// material-ui
 import { useTheme } from '@mui/material/styles';
 import Box from '@mui/material/Box';
 
-// project import
 import getColors from 'utils/getColors';
 
 export default function Dot({ color, size, variant, sx }) {

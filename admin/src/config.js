@@ -1,5 +1,3 @@
-// ==============================|| THEME CONFIG  ||============================== //
-
 const config = {
   defaultPath: '/dashboard/default',
   fontFamily: `'Public Sans', sans-serif`,

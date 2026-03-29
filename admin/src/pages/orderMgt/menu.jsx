@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import config from '../../config/appConfig';
-import './menu.css'; // Add styles for the table
-import { IconButton, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Button, FormControl, Select, MenuItem, InputLabel, Grid } from '@mui/material'; // Import Material-UI IconButton
-import DeleteIcon from '@mui/icons-material/Delete'; // Import Material-UI Delete Icon
-import CheckCircleIcon from '@mui/icons-material/CheckCircle'; // Checkmark icon for "Yes"
+import './menu.css'; 
+import { IconButton, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Button, FormControl, Select, MenuItem, InputLabel, Grid } from '@mui/material';
+import DeleteIcon from '@mui/icons-material/Delete'; 
+import CheckCircleIcon from '@mui/icons-material/CheckCircle'; 
 
 const Menu = () => {
   const [canteenName, setCanteenName] = useState('');
@@ -12,28 +12,24 @@ const Menu = () => {
   const [allFoodItems, setAllFoodItems] = useState([]);
   const [categories, setCategories] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState('all');
-  const [openDialog, setOpenDialog] = useState(false); // Add this line
-  const [selectedFoodId, setSelectedFoodId] = useState(null); // Add this line
+  const [openDialog, setOpenDialog] = useState(false); 
+  const [selectedFoodId, setSelectedFoodId] = useState(null);
 
-  // Fetch canteen name from localStorage
   useEffect(() => {
     const storedCanteenName = localStorage.getItem('canteenName') || '';
     setCanteenName(storedCanteenName);
   }, []);
 
-  // Fetch food items relevant to the canteen
   useEffect(() => {
     const fetchFoodItems = async () => {
       try {
         const response = await axios.get(`${config.api_base_urls.admin}/api/foods`);
         const foodsData = response.data;
 
-        // Filter food items by canteen name
         const filteredFoods = foodsData.filter((food) => food.canteen === canteenName);
         setAllFoodItems(filteredFoods);
         setFoodItems(filteredFoods);
         
-        // Extract unique categories
         const uniqueCategories = [...new Set(filteredFoods.map(food => food.category))];
         setCategories(uniqueCategories);
       } catch (error) {
@@ -46,7 +42,6 @@ const Menu = () => {
     }
   }, [canteenName]);
 
-  // Filter food items by category
   useEffect(() => {
     if (selectedCategory === 'all') {
       setFoodItems(allFoodItems);
@@ -56,7 +51,6 @@ const Menu = () => {
     }
   }, [selectedCategory, allFoodItems]);
 
-  // Handle delete food item
   const handleDelete = async () => {
     try {
       if (!selectedFoodId) {
@@ -77,13 +71,11 @@ const Menu = () => {
     }
   };
 
-  // Open confirmation dialog
   const handleOpenDialog = (foodId) => {
     setSelectedFoodId(foodId);
     setOpenDialog(true);
   };
 
-  // Close confirmation dialog
   const handleCloseDialog = () => {
     setOpenDialog(false);
     setSelectedFoodId(null);
@@ -93,7 +85,6 @@ const Menu = () => {
     <div className="menu-details">
       <h2>Food Items</h2>
       
-      {/* Category Filter */}
       <Grid container spacing={2} sx={{ mb: 3 }}>
         <Grid item xs={12} md={4}>
           <FormControl fullWidth>
@@ -129,11 +120,6 @@ const Menu = () => {
               <td>{food.category}</td>
               <td>{food.food}</td>
               <td>Rs. {food.price}.00</td>
-             { /*<td>
-                <button className="delete-button" onClick={() => handleDelete(food._id)}>
-                  Delete
-                </button>
-              </td> */}
               <td>
                 <IconButton
                   aria-label="delete"
@@ -148,7 +134,6 @@ const Menu = () => {
         </tbody>
       </table>
 
-        {/* Confirmation Dialog */}
         <Dialog
         open={openDialog}
         onClose={handleCloseDialog}

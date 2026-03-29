@@ -1,14 +1,11 @@
 import axios from 'axios';
 import config from '../../../../config/appConfig';
 import React, { useEffect, useState, useRef } from 'react';
-
-// material-ui
 import { useTheme } from '@mui/material/styles';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import Avatar from '@mui/material/Avatar';
 import Badge from '@mui/material/Badge';
 import ClickAwayListener from '@mui/material/ClickAwayListener';
-import Divider from '@mui/material/Divider';
 import IconButton from '@mui/material/IconButton';
 import List from '@mui/material/List';
 import ListItemButton from '@mui/material/ListItemButton';
@@ -17,23 +14,13 @@ import ListItemText from '@mui/material/ListItemText';
 import ListItemSecondaryAction from '@mui/material/ListItemSecondaryAction';
 import Paper from '@mui/material/Paper';
 import Popper from '@mui/material/Popper';
-import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
-import NotificationBell from 'components/NotificationBell';
-
-// project import
 import MainCard from 'components/MainCard';
 import Transitions from 'components/@extended/Transitions';
-
-// assets
 import BellOutlined from '@ant-design/icons/BellOutlined';
-import CheckCircleOutlined from '@ant-design/icons/CheckCircleOutlined';
-import GiftOutlined from '@ant-design/icons/GiftOutlined';
 import MessageOutlined from '@ant-design/icons/MessageOutlined';
-import SettingOutlined from '@ant-design/icons/SettingOutlined';
 
-// sx styles
 const avatarSX = {
   width: 36,
   height: 36,
@@ -49,9 +36,6 @@ const actionSX = {
 
   transform: 'none'
 };
-
-// ==============================|| HEADER CONTENT - NOTIFICATION ||============================== //
-
 
 export default function Notification() {
   const theme = useTheme();
@@ -77,8 +61,7 @@ export default function Notification() {
           const res = await axios.get(`${config.api_base_urls.user}/api/complaints/all`, { withCredentials: true });
           const complaints = Array.isArray(res.data) ? res.data : [];
           setNotifications(complaints);
-          // Only count unread
-          setCount(complaints.filter(c => !readIds.includes(c._id || c.id)).length);
+          setCount(complaints.filter((c) => !readIds.includes(c._id || c.id)).length);
         } catch (err) {
           setNotifications([]);
           setCount(0);
@@ -88,7 +71,6 @@ export default function Notification() {
       const interval = setInterval(fetchComplaints, 2000);
       return () => clearInterval(interval);
     } else {
-      // Canteen Owner logic (existing)
       const fetchOrderPlaced = async () => {
         try {
           const canteenName = localStorage.getItem('canteenName') || '';
@@ -99,7 +81,7 @@ export default function Notification() {
           }
           const res = await axios.get(`${config.api_base_urls.user}/api/admin/orders?canteenName=${canteenName}`);
           const orders = Array.isArray(res.data) ? res.data : [];
-          const placedOrders = orders.filter(o => o.status === 'order placed');
+          const placedOrders = orders.filter((o) => o.status === 'order placed');
           setNotifications(placedOrders);
           setCount(placedOrders.length);
         } catch (err) {
@@ -125,13 +107,12 @@ export default function Notification() {
   const handleNotificationClick = (item) => {
     const role = localStorage.getItem('userRole');
     if (role === 'Admin') {
-      // Mark as read and persist in localStorage
-      setReadIds(prev => {
+      setReadIds((prev) => {
         const updated = [...prev, item._id || item.id];
         localStorage.setItem('adminReadNotificationIds', JSON.stringify(updated));
         return updated;
       });
-      setCount(prev => prev - 1);
+      setCount((prev) => prev - 1);
       window.location.href = '/complaint-management';
     } else {
       window.location.href = '/order';
@@ -168,12 +149,7 @@ export default function Notification() {
           <Transitions type="grow" position={matchesXs ? 'top' : 'top-right'} in={open} {...TransitionProps}>
             <Paper sx={{ boxShadow: theme.customShadows.z1, width: '100%', minWidth: 285, maxWidth: { xs: 285, md: 420 } }}>
               <ClickAwayListener onClickAway={handleClose}>
-                <MainCard
-                  title="Notification"
-                  elevation={0}
-                  border={false}
-                  content={false}
-                >
+                <MainCard title="Notification" elevation={0} border={false} content={false}>
                   <List
                     component="nav"
                     sx={{
@@ -192,25 +168,27 @@ export default function Notification() {
                       </ListItemButton>
                     )}
                     {localStorage.getItem('userRole') === 'Admin'
-                      ? notifications.filter(c => !readIds.includes(c._id || c.id)).map(complaint => (
-                          <ListItemButton key={complaint._id || complaint.id} onClick={() => handleNotificationClick(complaint)}>
-                            <ListItemAvatar>
-                              <Avatar sx={{ color: 'error.main', bgcolor: 'error.lighter' }}>
-                                <MessageOutlined />
-                              </Avatar>
-                            </ListItemAvatar>
-                            <ListItemText
-                              primary={<Typography variant="h6">Complaint received for Order {complaint.orderId}</Typography>}
-                              secondary={`Canteen: ${complaint.canteenName} | ${complaint.complaintType}`}
-                            />
-                            <ListItemSecondaryAction>
-                              <Typography variant="caption" noWrap>
-                                {complaint.createdAt ? new Date(complaint.createdAt).toLocaleString() : '-'}
-                              </Typography>
-                            </ListItemSecondaryAction>
-                          </ListItemButton>
-                        ))
-                      : notifications.map(order => (
+                      ? notifications
+                          .filter((c) => !readIds.includes(c._id || c.id))
+                          .map((complaint) => (
+                            <ListItemButton key={complaint._id || complaint.id} onClick={() => handleNotificationClick(complaint)}>
+                              <ListItemAvatar>
+                                <Avatar sx={{ color: 'error.main', bgcolor: 'error.lighter' }}>
+                                  <MessageOutlined />
+                                </Avatar>
+                              </ListItemAvatar>
+                              <ListItemText
+                                primary={<Typography variant="h6">Complaint received for Order {complaint.orderId}</Typography>}
+                                secondary={`Canteen: ${complaint.canteenName} | ${complaint.complaintType}`}
+                              />
+                              <ListItemSecondaryAction>
+                                <Typography variant="caption" noWrap>
+                                  {complaint.createdAt ? new Date(complaint.createdAt).toLocaleString() : '-'}
+                                </Typography>
+                              </ListItemSecondaryAction>
+                            </ListItemButton>
+                          ))
+                      : notifications.map((order) => (
                           <ListItemButton key={order._id} onClick={() => handleNotificationClick(order)}>
                             <ListItemAvatar>
                               <Avatar sx={{ color: 'primary.main', bgcolor: 'primary.lighter' }}>

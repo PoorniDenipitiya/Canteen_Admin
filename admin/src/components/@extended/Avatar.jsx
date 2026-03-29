@@ -1,10 +1,8 @@
 import PropTypes from 'prop-types';
 
-// material-ui
 import { styled, useTheme } from '@mui/material/styles';
 import MuiAvatar from '@mui/material/Avatar';
 
-// project import
 import getColors from 'utils/getColors';
 
 function getColorStyle({ theme, color, type }) {
@@ -38,8 +36,6 @@ function getColorStyle({ theme, color, type }) {
       };
   }
 }
-
-// ==============================|| AVATAR - SIZE STYLE ||============================== //
 
 function getSizeStyle(size) {
   switch (size) {

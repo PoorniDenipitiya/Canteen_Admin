@@ -2,8 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate} from 'react-router-dom';
 import axios from 'axios';
 import config from '../../config/appConfig';
-import './index.css'; // Add styles for the modern tabular format
-
+import './index.css'; 
 
 const OrderManagement = () => {
   const navigate = useNavigate();
@@ -12,31 +11,24 @@ const OrderManagement = () => {
   const statusOptions = ["order placed", "accepted", "processing", "order ready", "collected", "uncollected", "fined"];
   const [orderStatusCounts, setOrderStatusCounts] = useState({});
 
-  // Fetch canteen name from localStorage
   useEffect(() => {
     const storedCanteenName = localStorage.getItem('canteenName') || '';
     setCanteenName(storedCanteenName);
   }, []);
 
-  // Fetch categories and food items
   useEffect(() => {
     const fetchCategoriesAndFoods = async () => {
       try {
-        // Fetch categories
   const categoryResponse = await axios.get(`${config.api_base_urls.admin}/api/categories`);
         const categoriesData = categoryResponse.data;
   
-        // Fetch food items
   const foodResponse = await axios.get(`${config.api_base_urls.admin}/api/foods`);
         const foodsData = foodResponse.data;
   
-        // Filter food items by canteen name
         const filteredFoods = foodsData.filter((food) => food.canteen === canteenName);
   
-        // Create a map to store unique categories with food counts
         const categoryMap = {};
   
-        // Calculate food count for each category
         filteredFoods.forEach((food) => {
           if (!categoryMap[food.category]) {
             categoryMap[food.category] = {
@@ -48,7 +40,6 @@ const OrderManagement = () => {
           categoryMap[food.category].foodCount += 1;
         });
   
-        // Convert the map to an array
         const aggregatedData = Object.values(categoryMap);
   
         setCategoriesWithFoodCount(aggregatedData);
@@ -62,21 +53,18 @@ const OrderManagement = () => {
     }
   }, [canteenName]);
 
-  // Fetch orders and count by status for today
   useEffect(() => {
     const fetchOrderStatusCounts = async () => {
       try {
         if (!canteenName) return;
   const response = await axios.get(`${config.api_base_urls.user}/api/admin/orders?canteenName=${canteenName}`);
         const orders = Array.isArray(response.data) ? response.data : [];
-        // Filter orders for today
         const today = new Date();
         const todayStr = today.toISOString().slice(0, 10);
         const todayOrders = orders.filter(order => {
           const orderDate = new Date(order.orderedDate);
           return orderDate.toISOString().slice(0, 10) === todayStr;
         });
-        // Count orders by status
         const counts = {};
         statusOptions.forEach(status => { counts[status] = 0; });
         todayOrders.forEach(order => {
@@ -87,7 +75,6 @@ const OrderManagement = () => {
         setOrderStatusCounts(counts);
       } catch (error) {
         console.error('Error fetching orders:', error);
-        // Set all to 0 if error
         const counts = {};
         statusOptions.forEach(status => { counts[status] = 0; });
         setOrderStatusCounts(counts);
@@ -100,7 +87,6 @@ const OrderManagement = () => {
 
   return (
     <div className="order-management">
-      {/* Menu Box */}
       <div className="box">
         <h2>Menu</h2>
         <div className="category-list">
@@ -129,7 +115,6 @@ const OrderManagement = () => {
         </button>
       </div>
 
-      {/* Orders Box */}
       <div className="box">
         <h2>Orders</h2>
         <div className="category-list">

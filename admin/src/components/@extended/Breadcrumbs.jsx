@@ -1,13 +1,9 @@
-import PropTypes from 'prop-types';
+/*import PropTypes from 'prop-types';
 import { useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-
-// material-ui
 import Grid from '@mui/material/Grid';
 import Typography from '@mui/material/Typography';
 import MuiBreadcrumbs from '@mui/material/Breadcrumbs';
-
-// project import
 import MainCard from 'components/MainCard';
 
 export default function Breadcrumbs({ navigation, title, ...others }) {
@@ -15,7 +11,6 @@ export default function Breadcrumbs({ navigation, title, ...others }) {
   const [main, setMain] = useState();
   const [item, setItem] = useState();
 
-  // set active item state
   const getCollapse = (menu) => {
     if (menu.children) {
       menu.children.filter((collapse) => {
@@ -41,7 +36,6 @@ export default function Breadcrumbs({ navigation, title, ...others }) {
     });
   });
 
-  // only used for component demo breadcrumbs
   if (location.pathname === '/breadcrumbs') {
     location.pathname = '/dashboard/analytics';
   }
@@ -51,7 +45,6 @@ export default function Breadcrumbs({ navigation, title, ...others }) {
   let breadcrumbContent = <Typography />;
   let itemTitle = '';
 
-  // collapse item
   if (main && main.type === 'collapse') {
     mainContent = (
       <Typography component={Link} to={document.location.pathname} variant="h6" sx={{ textDecoration: 'none' }} color="textSecondary">
@@ -60,7 +53,6 @@ export default function Breadcrumbs({ navigation, title, ...others }) {
     );
   }
 
-  // items
   if (item && item.type === 'item') {
     itemTitle = item.title;
     itemContent = (
@@ -69,7 +61,6 @@ export default function Breadcrumbs({ navigation, title, ...others }) {
       </Typography>
     );
 
-    // main
     if (item.breadcrumbs !== false) {
       breadcrumbContent = (
         <MainCard border={false} sx={{ mb: 3, bgcolor: 'transparent' }} {...others} content={false}>
@@ -113,3 +104,4 @@ Breadcrumbs.propTypes = {
   sx: PropTypes.any,
   others: PropTypes.any
 };
+*/

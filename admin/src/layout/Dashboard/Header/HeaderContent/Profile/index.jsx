@@ -1,8 +1,5 @@
-import PropTypes from 'prop-types';
 import { useRef, useState, useEffect } from 'react';
-import {useNavigate} from 'react-router-dom';
-
-// material-ui
+import { useNavigate } from 'react-router-dom';
 import { useTheme } from '@mui/material/styles';
 import ButtonBase from '@mui/material/ButtonBase';
 import CardContent from '@mui/material/CardContent';
@@ -15,17 +12,12 @@ import Stack from '@mui/material/Stack';
 import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
-
-// project import
 import Avatar from 'components/@extended/Avatar';
 import MainCard from 'components/MainCard';
 import Transitions from 'components/@extended/Transitions';
-
-// assets
 import LogoutOutlined from '@ant-design/icons/LogoutOutlined';
 import avatar1 from 'assets/images/users/avatar-1.png';
 
-// tab panel wrapper
 function TabPanel({ children, value, index, ...other }) {
   return (
     <div role="tabpanel" hidden={value !== index} id={`profile-tabpanel-${index}`} aria-labelledby={`profile-tab-${index}`} {...other}>
@@ -34,10 +26,6 @@ function TabPanel({ children, value, index, ...other }) {
   );
 }
 
-
-
-// ==============================|| HEADER CONTENT - PROFILE ||============================== //
-
 export default function Profile() {
   const theme = useTheme();
   const navigate = useNavigate();
@@ -45,22 +33,20 @@ export default function Profile() {
   const anchorRef = useRef(null);
   const [open, setOpen] = useState(false);
 
-  // State to store user details
   const [userName, setUserName] = useState('');
   const [userRole, setUserRole] = useState('');
   const [canteenName, setCanteenName] = useState('');
 
-  // Fetch user details from local storage or API
   useEffect(() => {
-    const storedUserName = localStorage.getItem('userName') || 'John Doe'; // Default to 'John Doe' if not found
-  const storedUserRole = localStorage.getItem('userRole') || 'UI/UX Designer'; // Default to 'UI/UX Designer' if not found
-  const storedCanteenName = localStorage.getItem('canteenName') || ''; // Default to empty if not found
-  console.log('Retrieved userName:', storedUserName); // Debugging
-  console.log('Retrieved userRole:', storedUserRole); // Debugging
-  console.log('Retrieved canteenName:', storedCanteenName); // Debugging
-  setUserName(storedUserName);
-  setUserRole(storedUserRole);
-  setCanteenName(storedCanteenName);
+    const storedUserName = localStorage.getItem('userName') || 'John Doe';
+    const storedUserRole = localStorage.getItem('userRole') || 'UI/UX Designer';
+    const storedCanteenName = localStorage.getItem('canteenName') || '';
+    console.log('Retrieved userName:', storedUserName);
+    console.log('Retrieved userRole:', storedUserRole);
+    console.log('Retrieved canteenName:', storedCanteenName);
+    setUserName(storedUserName);
+    setUserRole(storedUserRole);
+    setCanteenName(storedCanteenName);
   }, []);
 
   const handleToggle = () => {
@@ -74,11 +60,8 @@ export default function Profile() {
     setOpen(false);
   };
 
-
-
   const handleLogout = () => {
-    // Perform any logout logic here (e.g., clearing tokens)
-    navigate('/login'); // Navigate to the login page
+    navigate('/login');
   };
 
   const iconBackColorOpen = 'grey.100';
@@ -102,7 +85,7 @@ export default function Profile() {
         <Stack direction="row" spacing={1.25} alignItems="center" sx={{ p: 0.5 }}>
           <Avatar alt="profile user" src={avatar1} size="sm" />
           <Typography variant="subtitle1" sx={{ textTransform: 'capitalize' }}>
-          {userName}
+            {userName}
           </Typography>
         </Stack>
       </ButtonBase>
@@ -136,14 +119,9 @@ export default function Profile() {
                           <Avatar alt="profile user" src={avatar1} sx={{ width: 32, height: 32 }} />
                           <Stack>
                             <Typography variant="h6">{userName}</Typography>
-                           {/* <Typography variant="body2" color="text.secondary">
-                            {userRole}
-                            </Typography> */}
-                             <Typography variant="body2" color="text.secondary">
-            {userRole === 'Canteen Owner' && canteenName
-              ? `${userRole} - ${canteenName}` // Display role and canteen name if role is "Canteen Owner"
-              : userRole}
-          </Typography>
+                            <Typography variant="body2" color="text.secondary">
+                              {userRole === 'Canteen Owner' && canteenName ? `${userRole} - ${canteenName}` : userRole}
+                            </Typography>
                           </Stack>
                         </Stack>
                       </Grid>
@@ -156,8 +134,6 @@ export default function Profile() {
                       </Grid>
                     </Grid>
                   </CardContent>
-
-
                 </MainCard>
               </ClickAwayListener>
             </Paper>
@@ -167,5 +143,3 @@ export default function Profile() {
     </Box>
   );
 }
-
-

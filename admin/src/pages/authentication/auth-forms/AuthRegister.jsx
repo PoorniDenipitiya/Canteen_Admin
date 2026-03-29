@@ -1,7 +1,5 @@
 import { useEffect, useState } from 'react';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
-
-// material-ui
 import Button from '@mui/material/Button';
 import FormControl from '@mui/material/FormControl';
 import FormHelperText from '@mui/material/FormHelperText';
@@ -18,20 +16,12 @@ import MenuItem from '@mui/material/MenuItem';
 import axios from 'axios';
 import config from '../../../config/appConfig';
 import Select from '@mui/material/Select';
-
-// third party
 import * as Yup from 'yup';
 import { Formik } from 'formik';
-
-// project import
 import AnimateButton from 'components/@extended/AnimateButton';
 import { strengthColor, strengthIndicator } from 'utils/password-strength';
-
-// assets
 import EyeOutlined from '@ant-design/icons/EyeOutlined';
 import EyeInvisibleOutlined from '@ant-design/icons/EyeInvisibleOutlined';
-
-// ============================|| JWT - REGISTER ||============================ //
 
 export default function AuthRegister() {
   const navigate = useNavigate();
@@ -60,10 +50,10 @@ export default function AuthRegister() {
     try {
   const response = await axios.post(`${config.api_base_urls.admin}/api/register`, values);
       if (response.data.success) {
-        localStorage.setItem('userName', values.username); // Store the username in local storage
-        localStorage.setItem('userRole', values.role); // Store the role in local storage
-        localStorage.setItem('canteenName', response.data.canteenName || ''); // Store canteenName if available
-        navigate('/'); // Use navigate instead of window.location.href
+        localStorage.setItem('userName', values.username); 
+        localStorage.setItem('userRole', values.role); 
+        localStorage.setItem('canteenName', response.data.canteenName || ''); 
+        navigate('/'); 
         console.log(response.data.message);
       } else {
         setErrors({ submit: response.data.message });
@@ -93,11 +83,8 @@ export default function AuthRegister() {
           lastname: Yup.string().max(255).required('Last Name is required'),
           role: Yup.string().required('Role is required'),
           canteenName: Yup.string().when('role', {
-            is: 'Canteen Owner', // Directly check if the role is "Canteen Owner"
-           // then: Yup.string().required('Canteen Name is required'), // Make canteenName required
-           //then: (validationSchema) => validationSchema.required('Canteen Name is required'), 
+            is: 'Canteen Owner', 
            then: () => Yup.string().required('Canteen Name is required'),
-           //otherwise: Yup.string().notRequired(), // Not required for other roles
            otherwise: () => Yup.string().notRequired(),
           }),
           email: Yup.string().email('Must be a valid email').max(255).required('Email is required'),
@@ -153,7 +140,6 @@ export default function AuthRegister() {
                 )}
               </Grid>
 
-              {/* Role Field */}
               <Grid item xs={12}>
                 <Stack spacing={1}>
                   <InputLabel htmlFor="role-signup">Role*</InputLabel>
@@ -164,11 +150,10 @@ export default function AuthRegister() {
                     value={values.role}
                     name="role"
                     onBlur={handleBlur}
-                    /*onChange={handleChange}*/
                     onChange={(e) => {
                       handleChange(e);
                       if (e.target.value === 'Canteen Owner') {
-                        values.canteenName = ''; // Reset canteenName when role changes to Canteen Owner
+                        values.canteenName = ''; 
                       }
                     }}
                     displayEmpty
@@ -188,7 +173,6 @@ export default function AuthRegister() {
                 )}
               </Grid>
 
-              {/* Conditionally render the canteen name field */}
               {values.role === 'Canteen Owner' && (
                 <Grid item xs={12}>
                   <Stack spacing={1}>
@@ -245,7 +229,6 @@ export default function AuthRegister() {
                 )}
               </Grid>
 
-              {/* Username Field */}
               <Grid item xs={12}>
                 <Stack spacing={1}>
                   <InputLabel htmlFor="username-signup">Username*</InputLabel>

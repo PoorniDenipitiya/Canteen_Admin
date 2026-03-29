@@ -1,13 +1,9 @@
+//visitor statistics area chart
 import PropTypes from 'prop-types';
 import { useState, useEffect } from 'react';
-
-// material-ui
 import { useTheme } from '@mui/material/styles';
-
-// third-party
 import ReactApexChart from 'react-apexcharts';
 
-// chart options
 const areaChartOptions = {
   chart: {
     height: 450,
@@ -27,8 +23,6 @@ const areaChartOptions = {
     strokeDashArray: 0
   }
 };
-
-// ==============================|| INCOME AREA CHART ||============================== //
 
 export default function IncomeAreaChart({ slot }) {
   const theme = useTheme();

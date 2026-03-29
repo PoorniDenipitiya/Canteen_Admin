@@ -1,13 +1,6 @@
-// material-ui
 import { createTheme } from '@mui/material/styles';
-
-// third-party
 import { presetPalettes } from '@ant-design/colors';
-
-// project import
 import ThemeOption from './theme';
-
-// ==============================|| DEFAULT THEME - PALETTE ||============================== //
 
 export default function Palette(mode, presetColor) {
   const colors = presetPalettes;

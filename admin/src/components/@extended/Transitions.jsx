@@ -1,7 +1,6 @@
+//custom transitions for dropdown in header
 import PropTypes from 'prop-types';
 import { forwardRef } from 'react';
-
-// material-ui
 import Collapse from '@mui/material/Collapse';
 import Fade from '@mui/material/Fade';
 import Grow from '@mui/material/Grow';
@@ -95,7 +94,7 @@ function transitions({ children, position = 'top-left', type = 'grow', direction
           <Box sx={positionSX}>{children}</Box>
         </Slide>
       )}
- 
+
       {type === 'zoom' && (
         <Zoom {...others}>
           <Box sx={positionSX}>{children}</Box>

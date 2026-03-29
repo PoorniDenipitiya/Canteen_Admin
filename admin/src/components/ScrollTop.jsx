@@ -1,7 +1,6 @@
+//scroll to top of the page when navigating between routes
 import PropTypes from 'prop-types';
 import { useEffect } from 'react';
-
-// ==============================|| NAVIGATION - SCROLL TO TOP ||============================== //
 
 const ScrollTop = ({ children }) => {
   useEffect(() => {
